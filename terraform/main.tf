@@ -84,6 +84,10 @@ resource "qovery_application" "backend" {
     {
       key   = "GIN_MODE"
       value = "release"
+    },
+    {
+      key   = "DB_SSL_MODE"
+      value = var.db_ssl_mode
     }
   ]
   

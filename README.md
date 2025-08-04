@@ -144,6 +144,10 @@ A modern Doctolib clone built to showcase Qovery's powerful deployment and DevOp
 
 #### Backend
 - `DATABASE_URL`: PostgreSQL connection string
+- `DB_SSL_MODE`: SSL mode for database connection (disable/require/verify-ca/verify-full, default: disable)
+- `DB_SSL_CERT`: Path to SSL client certificate (optional)
+- `DB_SSL_KEY`: Path to SSL client key (optional)
+- `DB_SSL_ROOT_CERT`: Path to SSL root certificate (optional)
 - `PORT`: Server port (default: 8080)
 - `GIN_MODE`: Gin mode (release/debug)
 
@@ -214,6 +218,44 @@ A modern Doctolib clone built to showcase Qovery's powerful deployment and DevOp
 6. **Environment Management**: Create staging environment
 7. **Database Management**: Show backups and monitoring
 8. **Cost Optimization**: Show resource usage and scaling
+
+## 🔧 Database SSL Configuration
+
+The application supports flexible SSL configuration for PostgreSQL connections:
+
+### SSL Modes
+- **`disable`** (default): No SSL connection
+- **`require`**: SSL connection required, but no certificate verification
+- **`verify-ca`**: SSL connection required, verify certificate authority
+- **`verify-full`**: SSL connection required, verify certificate authority and hostname
+
+### Configuration Examples
+
+#### Local Development (No SSL)
+```bash
+export DB_SSL_MODE=disable
+```
+
+#### Production with SSL
+```bash
+export DB_SSL_MODE=require
+# or for stricter verification:
+export DB_SSL_MODE=verify-full
+export DB_SSL_ROOT_CERT=/path/to/ca-cert.pem
+```
+
+#### Qovery Deployment
+In Terraform, set the SSL mode:
+```hcl
+db_ssl_mode = "require"  # or "disable" for development
+```
+
+### Troubleshooting SSL Issues
+
+If you encounter `SSL is not enabled on the server`:
+1. Set `DB_SSL_MODE=disable` for development/testing
+2. For production, ensure your PostgreSQL server supports SSL
+3. Use `require` mode if you need SSL but don't have certificates
 
 ## 📈 Production Readiness
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -51,9 +52,16 @@ var db *sql.DB
 func initDB() {
 	var err error
 	databaseURL := os.Getenv("DATABASE_URL")
+	
+	// Default local development configuration
 	if databaseURL == "" {
 		databaseURL = "postgres://doktolib:password123@localhost:5432/doktolib?sslmode=disable"
+	} else {
+		// Configure SSL mode based on environment variables
+		databaseURL = configureSSLMode(databaseURL)
 	}
+
+	log.Printf("Connecting to database with URL: %s", maskPassword(databaseURL))
 
 	db, err = sql.Open("postgres", databaseURL)
 	if err != nil {
@@ -65,6 +73,61 @@ func initDB() {
 	}
 
 	log.Println("Successfully connected to database")
+}
+
+// configureSSLMode adds or modifies SSL configuration in the database URL
+func configureSSLMode(databaseURL string) string {
+	sslMode := os.Getenv("DB_SSL_MODE")
+	if sslMode == "" {
+		sslMode = "disable" // Default to disable for compatibility
+	}
+
+	// Parse the URL
+	u, err := url.Parse(databaseURL)
+	if err != nil {
+		log.Printf("Warning: Could not parse DATABASE_URL, using as-is: %v", err)
+		return databaseURL
+	}
+
+	// Get existing query parameters
+	query := u.Query()
+	
+	// Set or update sslmode
+	query.Set("sslmode", sslMode)
+	
+	// Add additional SSL parameters if needed
+	if sslMode != "disable" {
+		// Set SSL cert configuration if provided
+		if sslCert := os.Getenv("DB_SSL_CERT"); sslCert != "" {
+			query.Set("sslcert", sslCert)
+		}
+		if sslKey := os.Getenv("DB_SSL_KEY"); sslKey != "" {
+			query.Set("sslkey", sslKey)
+		}
+		if sslRootCert := os.Getenv("DB_SSL_ROOT_CERT"); sslRootCert != "" {
+			query.Set("sslrootcert", sslRootCert)
+		}
+	}
+
+	// Rebuild the URL
+	u.RawQuery = query.Encode()
+	return u.String()
+}
+
+// maskPassword hides the password in database URL for logging
+func maskPassword(databaseURL string) string {
+	u, err := url.Parse(databaseURL)
+	if err != nil {
+		return databaseURL
+	}
+	
+	if u.User != nil && u.User.Username() != "" {
+		if _, hasPassword := u.User.Password(); hasPassword {
+			u.User = url.UserPassword(u.User.Username(), "***")
+		}
+	}
+	
+	return u.String()
 }
 
 func getDoctors(c *gin.Context) {

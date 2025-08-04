@@ -61,3 +61,14 @@ variable "database_storage" {
   type        = number
   default     = 10
 }
+
+variable "db_ssl_mode" {
+  description = "PostgreSQL SSL mode (disable, require, verify-ca, verify-full)"
+  type        = string
+  default     = "disable"
+  
+  validation {
+    condition = contains(["disable", "require", "verify-ca", "verify-full"], var.db_ssl_mode)
+    error_message = "The db_ssl_mode must be one of: disable, require, verify-ca, verify-full."
+  }
+}

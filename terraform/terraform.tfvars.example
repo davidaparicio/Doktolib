@@ -22,3 +22,6 @@ git_repository_url = "https://github.com/your-username/doktolib.git"
 
 # Optional: Database storage
 # database_storage = 10
+
+# Optional: Database SSL mode (disable, require, verify-ca, verify-full)
+# db_ssl_mode = "disable"
