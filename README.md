@@ -25,21 +25,58 @@ A modern Doctolib clone built to showcase Qovery's powerful deployment and DevOp
 
 ### Local Development
 
-1. **Clone the repository**:
+#### Option 1: Quick Start Script (Recommended)
+```bash
+git clone <your-repo-url>
+cd doktolib
+./run-local.sh
+```
+
+This script will:
+- Build the backend binary
+- Start PostgreSQL with Docker
+- Start the backend and frontend
+- Run health checks
+- Provide URLs for testing
+
+#### Option 2: Manual Setup
+
+1. **Prerequisites**:
    ```bash
-   git clone <your-repo-url>
-   cd doktolib
+   # Install Go 1.21+, Node.js 18+, and Docker
    ```
 
-2. **Start with Docker Compose**:
+2. **Start Database**:
    ```bash
-   docker-compose up -d
+   docker compose -f docker-compose.simple.yml up -d
    ```
 
-3. **Access the application**:
+3. **Start Backend**:
+   ```bash
+   cd backend
+   export DATABASE_URL="postgres://doktolib:password123@localhost:5432/doktolib"
+   export DB_SSL_MODE="disable"
+   go run .
+   ```
+
+4. **Start Frontend** (in another terminal):
+   ```bash
+   cd frontend
+   npm install
+   export NEXT_PUBLIC_API_URL="http://localhost:8080"
+   npm run dev
+   ```
+
+5. **Access the application**:
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
+   - Backend API: http://localhost:8080/api/v1
    - Database: localhost:5432
+
+#### Option 3: Full Docker Compose
+```bash
+docker compose up --build
+```
+*Note: Docker builds may take time depending on network speed*
 
 ### Production Deployment with Qovery
 

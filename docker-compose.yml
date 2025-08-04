@@ -22,9 +22,6 @@ services:
       - GIN_MODE=debug
     depends_on:
       - postgres
-    volumes:
-      - ./backend:/app
-    working_dir: /app
 
   frontend:
     build: ./frontend
@@ -34,10 +31,6 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8080
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
 
 volumes:
   postgres_data:
