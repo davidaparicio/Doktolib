@@ -1,0 +1,24 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+# Required variables
+qovery_api_token       = "your-qovery-api-token-here"
+qovery_organization_id = "your-organization-id-here"  
+qovery_cluster_id      = "your-cluster-id-here"
+
+# Git repository
+git_repository_url = "https://github.com/your-username/doktolib.git"
+
+# Optional: Custom domain
+# custom_domain = "doktolib.yourdomain.com"
+
+# Optional: Environment name
+# environment_name = "production"
+
+# Optional: Resource allocation
+# backend_cpu    = 500
+# backend_memory = 512
+# frontend_cpu    = 500
+# frontend_memory = 512
+
+# Optional: Database storage
+# database_storage = 10

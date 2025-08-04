@@ -1,0 +1,26 @@
+# Backend
+backend/doktolib
+backend/tmp/
+backend/.env
+
+# Frontend
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env*.local
+frontend/node_modules/
+
+# General
+.DS_Store
+*.log
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
