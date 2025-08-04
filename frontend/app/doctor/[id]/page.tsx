@@ -73,7 +73,7 @@ export default function DoctorDetail() {
     if (doctorId) {
       fetchDoctor()
     }
-  }, [doctorId])
+  }, [doctorId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderStars = (rating: number) => {
     const stars = []
@@ -174,7 +174,7 @@ export default function DoctorDetail() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Praticien non trouvé</h2>
           <button onClick={() => router.push('/')} className="btn-primary">
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </button>
         </div>
       </div>
@@ -223,7 +223,7 @@ export default function DoctorDetail() {
                     </div>
                     <div className="flex items-center">
                       <AcademicCapIcon className="h-5 w-5 mr-2" />
-                      {doctor.experience_years} ans d'expérience
+                      {doctor.experience_years} ans d&apos;expérience
                     </div>
                     <div className="flex items-center">
                       <LanguageIcon className="h-5 w-5 mr-2" />

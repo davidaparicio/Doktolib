@@ -45,7 +45,20 @@ export default function Home() {
   }
 
   useEffect(() => {
-    fetchDoctors()
+    const loadInitialDoctors = async () => {
+      try {
+        setLoading(true)
+        const response = await axios.get(`${API_URL}/api/v1/doctors`)
+        setDoctors(response.data || [])
+      } catch (error) {
+        console.error('Error fetching doctors:', error)
+        setDoctors([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadInitialDoctors()
   }, [])
 
   const handleSearch = (e: React.FormEvent) => {
@@ -196,7 +209,7 @@ export default function Home() {
                   </div>
                   
                   <div className="text-sm text-gray-600 mb-4">
-                    <p>{doctor.experience_years} ans d'expérience</p>
+                    <p>{doctor.experience_years} ans d&apos;expérience</p>
                     <p>Langues: {doctor.languages}</p>
                   </div>
                   
