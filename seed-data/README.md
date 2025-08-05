@@ -2,6 +2,7 @@
 
 This directory contains tools to generate and inject realistic fake doctor data into the Doktolib database.
 
+
 ## 🎯 Purpose
 
 - Generate 1500+ realistic French doctors with diverse specialties
