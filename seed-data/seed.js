@@ -63,6 +63,49 @@ async function connectToDatabase(retries = 10) {
   }
 }
 
+async function createSchema(client) {
+  console.log('🔧 Creating database schema...');
+  
+  const schema = `
+    -- Create doctors table
+    CREATE TABLE IF NOT EXISTS doctors (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        specialty VARCHAR(255) NOT NULL,
+        location VARCHAR(255) NOT NULL,
+        rating DECIMAL(3,2) DEFAULT 0.0,
+        price_per_hour INTEGER DEFAULT 0,
+        avatar TEXT,
+        experience_years INTEGER DEFAULT 0,
+        languages TEXT DEFAULT 'French',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Create appointments table
+    CREATE TABLE IF NOT EXISTS appointments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        doctor_id UUID NOT NULL REFERENCES doctors(id),
+        patient_name VARCHAR(255) NOT NULL,
+        patient_email VARCHAR(255) NOT NULL,
+        date_time TIMESTAMP NOT NULL,
+        duration_minutes INTEGER DEFAULT 30,
+        status VARCHAR(50) DEFAULT 'confirmed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Create indexes for better performance
+    CREATE INDEX IF NOT EXISTS idx_doctors_specialty ON doctors(specialty);
+    CREATE INDEX IF NOT EXISTS idx_doctors_location ON doctors(location);
+    CREATE INDEX IF NOT EXISTS idx_appointments_doctor_id ON appointments(doctor_id);
+    CREATE INDEX IF NOT EXISTS idx_appointments_date_time ON appointments(date_time);
+  `;
+
+  await client.query(schema);
+  console.log('✅ Database schema created successfully');
+}
+
 async function checkExistingDoctors(client) {
   try {
     const result = await client.query('SELECT COUNT(*) as count FROM doctors');
@@ -70,13 +113,16 @@ async function checkExistingDoctors(client) {
     console.log(`📊 Found ${count} existing doctors in database`);
     return count;
   } catch (error) {
-    console.log('ℹ️ Doctors table may not exist yet, will be created during migration');
+    console.log('ℹ️ Doctors table may not exist yet, will be created during schema setup');
     return 0;
   }
 }
 
 async function seedDatabase(client, force = false) {
   try {
+    // Create database schema if it doesn't exist
+    await createSchema(client);
+    
     // Check if we should skip seeding
     const existingCount = await checkExistingDoctors(client);
     
@@ -134,10 +180,8 @@ async function seedDatabase(client, force = false) {
       console.log(`   📝 Inserted ${insertedCount}/${doctors.length} doctors...`);
     }
     
-    // Create indexes
-    console.log('🔍 Creating indexes for better performance...');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_doctors_specialty ON doctors(specialty)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_doctors_location ON doctors(location)');
+    // Create additional indexes for better performance
+    console.log('🔍 Creating additional indexes for better performance...');
     await client.query('CREATE INDEX IF NOT EXISTS idx_doctors_rating ON doctors(rating DESC)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_doctors_price ON doctors(price_per_hour)');
     
