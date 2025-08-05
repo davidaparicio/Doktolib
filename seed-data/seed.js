@@ -183,7 +183,7 @@ async function main() {
   
   console.log(`🔧 Configuration:`);
   console.log(`- Database URL: ${process.env.DATABASE_URL.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`);
-  console.log(`- SSL Mode: ${process.env.DB_SSL_MODE || 'default'}`);
+  console.log(`- SSL Mode: ${process.env.DB_SSL_MODE || 'disable'}`);
   console.log(`- Doctor Count: ${doctorCount}`);
   console.log(`- Force Mode: ${force}`);
   
