@@ -9,7 +9,8 @@ A modern Doctolib clone built to showcase Qovery's powerful deployment and DevOp
 ### Services
 - **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
 - **Backend**: Go with Gin framework and PostgreSQL
-- **Database**: PostgreSQL 15 with sample data
+- **Database**: PostgreSQL 15 with realistic seed data (1500+ doctors)
+- **Seed Data**: Automated data generation and injection system
 - **Infrastructure**: Deployed on Qovery with Terraform
 
 ### Key Features
@@ -193,6 +194,35 @@ docker compose up --build
 - `PORT`: Frontend port (default: 3000)
 - `NODE_ENV`: Node environment
 
+## 🌱 Seed Data System
+
+### Realistic French Medical Data
+- **1500+ doctors** with authentic French names
+- **35+ medical specialties** (généraliste, cardiologue, dermatologue, etc.)
+- **40+ locations** across Paris and nearby cities
+- **Professional avatars** from Unsplash
+- **Realistic ratings** (3.0-5.0, weighted toward higher ratings)
+- **Market-based pricing** (specialists cost more)
+- **Diverse experience levels** (3-40 years)
+- **Multilingual support** (French + international languages)
+
+### Automated Injection
+- **Qovery Lifecycle Job**: Runs automatically after database deployment
+- **Smart seeding**: Won't overwrite existing data unless forced
+- **Batch processing**: Optimized for performance (100 doctors per batch)
+- **Error handling**: Retries and graceful failure handling
+- **Configuration**: Customizable via Terraform variables
+
+### Local Development
+```bash
+# Quick test with 50 doctors
+cd seed-data && npm install
+node generate-doctors.js 50
+
+# Seed local database
+DATABASE_URL="postgres://user:pass@localhost:5432/doktolib" npm run seed
+```
+
 ## 🐳 Docker Configuration
 
 ### Backend Dockerfile
@@ -207,6 +237,12 @@ docker compose up --build
 - Security-focused user management
 - Production-ready configuration
 
+### Seed Data Dockerfile
+- Node.js 18 with PostgreSQL client
+- Lightweight Alpine-based image
+- Non-root user for security
+- Health checks and error handling
+
 ## ☁️ Qovery Deployment
 
 ### What Qovery Provides
@@ -216,6 +252,7 @@ docker compose up --build
 - **Database Management**: Managed PostgreSQL with backups
 - **Environment Management**: Multiple environments (dev, staging, prod)
 - **GitOps CI/CD**: Auto-deploy on git push
+- **Lifecycle Jobs**: Automated seed data injection
 - **Monitoring**: Built-in application monitoring
 - **Security**: Network policies and secrets management
 
@@ -223,7 +260,8 @@ docker compose up --build
 - Qovery Project and Environment
 - PostgreSQL Database (managed)
 - Backend Application (containerized)
-- Frontend Application (containerized) 
+- Frontend Application (containerized)
+- Seed Data Lifecycle Job (automated data injection)
 - Custom Domain (optional)
 - SSL Certificates
 - Health Checks and Probes

@@ -72,3 +72,20 @@ variable "db_ssl_mode" {
     error_message = "The db_ssl_mode must be one of: disable, require, verify-ca, verify-full."
   }
 }
+
+variable "seed_doctor_count" {
+  description = "Number of fake doctors to generate for seed data"
+  type        = number
+  default     = 1500
+  
+  validation {
+    condition = var.seed_doctor_count >= 10 && var.seed_doctor_count <= 10000
+    error_message = "The seed_doctor_count must be between 10 and 10000."
+  }
+}
+
+variable "force_seed" {
+  description = "Force seed data insertion even if doctors already exist"
+  type        = bool
+  default     = false
+}

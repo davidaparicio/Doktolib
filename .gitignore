@@ -10,6 +10,11 @@ frontend/build/
 frontend/.env*.local
 frontend/node_modules/
 
+# Seed Data
+seed-data/node_modules/
+seed-data/doctors-seed.json
+seed-data/doctors-seed.sql
+
 # General
 .DS_Store
 *.log

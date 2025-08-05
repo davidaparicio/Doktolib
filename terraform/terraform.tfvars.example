@@ -25,3 +25,7 @@ git_repository_url = "https://github.com/your-username/doktolib.git"
 
 # Optional: Database SSL mode (disable, require, verify-ca, verify-full)
 # db_ssl_mode = "disable"
+
+# Optional: Seed data configuration
+# seed_doctor_count = 1500  # Number of fake doctors to generate
+# force_seed = false        # Force seed even if data exists

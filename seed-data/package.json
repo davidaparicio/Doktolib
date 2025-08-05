@@ -1,0 +1,21 @@
+{
+  "name": "doktolib-seed-data",
+  "version": "1.0.0",
+  "description": "Seed data generator and injector for Doktolib database",
+  "main": "seed.js",
+  "scripts": {
+    "generate": "node generate-doctors.js",
+    "seed": "node seed.js",
+    "seed-force": "FORCE_SEED=true node seed.js",
+    "test": "node generate-doctors.js 10 && echo 'Test generation completed'"
+  },
+  "dependencies": {
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["doktolib", "seed", "database", "doctors", "medical"],
+  "author": "Doktolib Team",
+  "license": "MIT"
+}

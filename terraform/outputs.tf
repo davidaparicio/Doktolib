@@ -34,7 +34,21 @@ output "custom_domain_url" {
   value       = var.custom_domain != "" ? "https://${var.custom_domain}" : null
 }
 
+output "seed_job_id" {
+  description = "The ID of the seed data job"
+  value       = qovery_job.seed_data.id
+}
+
 output "qovery_console_url" {
   description = "Qovery console URL for this project"
   value       = "https://console.qovery.com/platform/organization/${var.qovery_organization_id}/projects/${qovery_project.doktolib.id}/environments/${qovery_environment.production.id}/applications"
+}
+
+output "seed_configuration" {
+  description = "Seed data configuration"
+  value = {
+    doctor_count = var.seed_doctor_count
+    force_seed   = var.force_seed
+    ssl_mode     = var.db_ssl_mode
+  }
 }

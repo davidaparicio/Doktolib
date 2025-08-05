@@ -225,6 +225,59 @@ resource "qovery_custom_domain" "frontend_domain" {
   generate_certificate = true
 }
 
+# Seed Data Lifecycle Job
+resource "qovery_job" "seed_data" {
+  environment_id = qovery_environment.production.id
+  name          = "doktolib-seed-data"
+  
+  git_repository = {
+    url       = var.git_repository_url
+    branch    = "main"
+    root_path = "/seed-data"
+  }
+  
+  build_mode            = "DOCKER"
+  dockerfile_path       = "Dockerfile"
+  
+  # Resources (smaller since it's a one-time job)
+  cpu    = 256  # 0.25 vCPU
+  memory = 512  # 512 MB
+  
+  # Job configuration
+  max_nb_restart = 3
+  max_duration_seconds = 1800  # 30 minutes timeout
+  
+  # Environment variables
+  environment_variables = [
+    {
+      key   = "DB_SSL_MODE"
+      value = var.db_ssl_mode
+    },
+    {
+      key   = "DOCTOR_COUNT"
+      value = tostring(var.seed_doctor_count)
+    },
+    {
+      key   = "FORCE_SEED"
+      value = tostring(var.force_seed)
+    }
+  ]
+  
+  # Database connection will be auto-injected by Qovery
+  built_in_environment_variables = [
+    {
+      key = "DATABASE_URL"
+    }
+  ]
+  
+  # Job lifecycle - run after database is ready
+  schedule = {
+    lifecycle_type = "START"
+  }
+  
+  depends_on = [qovery_database.postgres]
+}
+
 # Deploy the environment
 resource "qovery_deployment" "deploy_production" {
   environment_id = qovery_environment.production.id
@@ -232,6 +285,7 @@ resource "qovery_deployment" "deploy_production" {
   
   depends_on = [
     qovery_database.postgres,
+    qovery_job.seed_data,
     qovery_application.backend,
     qovery_application.frontend
   ]
