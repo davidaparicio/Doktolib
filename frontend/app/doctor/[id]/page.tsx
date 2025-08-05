@@ -63,7 +63,7 @@ export default function DoctorDetail() {
       setDoctor(response.data)
     } catch (error) {
       console.error('Error fetching doctor:', error)
-      toast.error('Erreur lors du chargement du praticien')
+      toast.error('Error loading doctor')
     } finally {
       setLoading(false)
     }
@@ -133,7 +133,7 @@ export default function DoctorDetail() {
     e.preventDefault()
     
     if (!selectedDate || !selectedTime || !bookingForm.patient_name || !bookingForm.patient_email) {
-      toast.error('Veuillez remplir tous les champs')
+      toast.error('Please fill in all fields')
       return
     }
 
@@ -146,7 +146,7 @@ export default function DoctorDetail() {
       }
       
       await axios.post(`${API_URL}/api/v1/appointments`, bookingData)
-      toast.success('Rendez-vous confirmé !')
+      toast.success('Appointment confirmed!')
       
       setTimeout(() => {
         router.push('/')
@@ -154,7 +154,7 @@ export default function DoctorDetail() {
       
     } catch (error) {
       console.error('Error booking appointment:', error)
-      toast.error('Erreur lors de la réservation')
+      toast.error('Error during booking')
     } finally {
       setSubmitting(false)
     }
@@ -172,9 +172,9 @@ export default function DoctorDetail() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Praticien non trouvé</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Doctor not found</h2>
           <button onClick={() => router.push('/')} className="btn-primary">
-            Retour à l&apos;accueil
+            Back to home
           </button>
         </div>
       </div>
@@ -192,7 +192,7 @@ export default function DoctorDetail() {
               className="flex items-center text-gray-600 hover:text-doctolib-darkblue mr-6"
             >
               <ArrowLeftIcon className="h-5 w-5 mr-2" />
-              Retour
+              Back
             </button>
             <h1 className="text-3xl font-bold text-doctolib-darkblue">Doktolib</h1>
           </div>
@@ -223,7 +223,7 @@ export default function DoctorDetail() {
                     </div>
                     <div className="flex items-center">
                       <AcademicCapIcon className="h-5 w-5 mr-2" />
-                      {doctor.experience_years} ans d&apos;expérience
+                      {doctor.experience_years} years of experience
                     </div>
                     <div className="flex items-center">
                       <LanguageIcon className="h-5 w-5 mr-2" />
@@ -251,15 +251,15 @@ export default function DoctorDetail() {
                   onClick={() => setShowBooking(true)}
                   className="btn-primary w-full text-lg py-3"
                 >
-                  Prendre rendez-vous
+                  Book appointment
                 </button>
               ) : (
                 <div className="border-t pt-6">
-                  <h3 className="text-xl font-semibold mb-4">Réserver un rendez-vous</h3>
+                  <h3 className="text-xl font-semibold mb-4">Book an appointment</h3>
                   
                   {/* Date Selection */}
                   <div className="mb-6">
-                    <h4 className="font-medium mb-3">Choisir une date</h4>
+                    <h4 className="font-medium mb-3">Choose a date</h4>
                     <div className="grid grid-cols-7 gap-2">
                       {getAvailableDates().map((date) => (
                         <button
@@ -281,7 +281,7 @@ export default function DoctorDetail() {
                   {/* Time Selection */}
                   {selectedDate && (
                     <div className="mb-6">
-                      <h4 className="font-medium mb-3">Choisir un horaire</h4>
+                      <h4 className="font-medium mb-3">Choose a time</h4>
                       <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
                         {generateTimeSlots().map((time) => (
                           <button
@@ -305,7 +305,7 @@ export default function DoctorDetail() {
                     <form onSubmit={handleBookingSubmit} className="space-y-4">
                       <div>
                         <label htmlFor="patient_name" className="block text-sm font-medium text-gray-700 mb-1">
-                          Nom complet *
+                          Full name *
                         </label>
                         <input
                           type="text"
@@ -333,7 +333,7 @@ export default function DoctorDetail() {
                       
                       <div>
                         <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
-                          Durée de consultation
+                          Consultation duration
                         </label>
                         <select
                           id="duration"
@@ -342,7 +342,7 @@ export default function DoctorDetail() {
                           onChange={(e) => setBookingForm({...bookingForm, duration_minutes: parseInt(e.target.value)})}
                         >
                           <option value={30}>30 minutes</option>
-                          <option value={60}>1 heure</option>
+                          <option value={60}>1 hour</option>
                         </select>
                       </div>
                       
@@ -352,14 +352,14 @@ export default function DoctorDetail() {
                           onClick={() => setShowBooking(false)}
                           className="btn-secondary flex-1"
                         >
-                          Annuler
+                          Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={submitting}
                           className="btn-primary flex-1 disabled:opacity-50"
                         >
-                          {submitting ? 'Confirmation...' : 'Confirmer le rendez-vous'}
+                          {submitting ? 'Confirming...' : 'Confirm appointment'}
                         </button>
                       </div>
                     </form>
@@ -372,30 +372,30 @@ export default function DoctorDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="card">
-              <h3 className="text-lg font-semibold mb-4">Informations pratiques</h3>
+              <h3 className="text-lg font-semibold mb-4">Practical information</h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <span className="font-medium">Tarif :</span> {doctor.price_per_hour}€
+                  <span className="font-medium">Rate:</span> {doctor.price_per_hour}€
                 </div>
                 <div>
-                  <span className="font-medium">Durée :</span> 30-60 minutes
+                  <span className="font-medium">Duration:</span> 30-60 minutes
                 </div>
                 <div>
-                  <span className="font-medium">Paiement :</span> Espèces, CB, Chèque
+                  <span className="font-medium">Payment:</span> Cash, Card, Check
                 </div>
               </div>
             </div>
             
             <div className="card">
-              <h3 className="text-lg font-semibold mb-4">Accès et contact</h3>
+              <h3 className="text-lg font-semibold mb-4">Access and contact</h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <span className="font-medium">Adresse :</span><br />
+                  <span className="font-medium">Address:</span><br />
                   {doctor.location}
                 </div>
                 <div>
-                  <span className="font-medium">Accès :</span><br />
-                  Métro, Bus, Parking
+                  <span className="font-medium">Access:</span><br />
+                  Metro, Bus, Parking
                 </div>
               </div>
             </div>

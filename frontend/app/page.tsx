@@ -103,9 +103,9 @@ export default function Home() {
               <h1 className="text-3xl font-bold text-doctolib-darkblue">Doktolib</h1>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Trouver un praticien</a>
-              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Téléconsultation</a>
-              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Se connecter</a>
+              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Find a Doctor</a>
+              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Teleconsultation</a>
+              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Sign In</a>
             </nav>
           </div>
         </div>
@@ -116,10 +116,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Trouvez et réservez votre rendez-vous médical
+              Find and Book Your Medical Appointment
             </h2>
             <p className="text-xl text-blue-100 mb-8">
-              Plus de 10 000 praticiens de santé vous attendent
+              Over 10,000 healthcare professionals are waiting for you
             </p>
             
             {/* Search Form */}
@@ -130,7 +130,7 @@ export default function Home() {
                     <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Spécialité, pathologie..."
+                      placeholder="Specialty, condition..."
                       className="input-field pl-10"
                       value={searchSpecialty}
                       onChange={(e) => setSearchSpecialty(e.target.value)}
@@ -140,14 +140,14 @@ export default function Home() {
                     <MapPinIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Où ? (ville, code postal...)"
+                      placeholder="Where? (city, postal code...)"
                       className="input-field pl-10"
                       value={searchLocation}
                       onChange={(e) => setSearchLocation(e.target.value)}
                     />
                   </div>
                   <button type="submit" className="btn-primary w-full">
-                    Rechercher
+                    Search
                   </button>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function Home() {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-2xl font-bold text-gray-900 mb-8">
-            {doctors.length > 0 ? `${doctors.length} praticien${doctors.length > 1 ? 's' : ''} trouvé${doctors.length > 1 ? 's' : ''}` : 'Praticiens disponibles'}
+            {doctors.length > 0 ? `${doctors.length} doctor${doctors.length > 1 ? 's' : ''} found` : 'Available doctors'}
           </h3>
           
           {loading ? (
@@ -209,19 +209,19 @@ export default function Home() {
                   </div>
                   
                   <div className="text-sm text-gray-600 mb-4">
-                    <p>{doctor.experience_years} ans d&apos;expérience</p>
-                    <p>Langues: {doctor.languages}</p>
+                    <p>{doctor.experience_years} years of experience</p>
+                    <p>Languages: {doctor.languages}</p>
                   </div>
                   
                   <Link href={`/doctor/${doctor.id}`} className="btn-primary w-full text-center block">
-                    Prendre rendez-vous
+                    Book appointment
                   </Link>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600">Aucun praticien trouvé pour votre recherche.</p>
+              <p className="text-gray-600">No doctors found for your search.</p>
             </div>
           )}
         </div>
