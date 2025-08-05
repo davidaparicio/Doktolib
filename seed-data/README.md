@@ -141,14 +141,42 @@ CREATE TABLE doctors (
 
 ## 🚨 Troubleshooting
 
+### SSL Connection Issues
+
+If you see `The server does not support SSL connections`:
+```bash
+# Disable SSL for local development or non-SSL databases
+export DB_SSL_MODE="disable"
+npm run seed
+```
+
+If you see `SSL connection has been closed unexpectedly`:
+```bash
+# Use require mode (SSL without certificate verification)
+export DB_SSL_MODE="require"
+npm run seed
+```
+
 ### Connection Issues
 ```bash
 # Check database connectivity
 psql "$DATABASE_URL" -c "SELECT 1"
 
-# Test with SSL disabled
-export DB_SSL_MODE="disable"
+# Test all SSL modes automatically
+DATABASE_URL="your-database-url" npm run test-ssl
+
+# Test different SSL modes manually
+export DB_SSL_MODE="disable"    # No SSL
+export DB_SSL_MODE="require"    # SSL without verification
+export DB_SSL_MODE="verify-ca"  # SSL with CA verification
+export DB_SSL_MODE="verify-full" # Full SSL verification
 ```
+
+### SSL Mode Reference
+- **`disable`**: No SSL connection (default for local development)
+- **`require`**: SSL connection required, but no certificate verification
+- **`verify-ca`**: SSL connection required, verify certificate authority
+- **`verify-full`**: SSL connection required, verify certificate authority and hostname
 
 ### Force Re-seeding
 ```bash

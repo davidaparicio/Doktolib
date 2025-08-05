@@ -7,7 +7,8 @@
     "generate": "node generate-doctors.js",
     "seed": "node seed.js",
     "seed-force": "FORCE_SEED=true node seed.js",
-    "test": "node generate-doctors.js 10 && echo 'Test generation completed'"
+    "test": "node generate-doctors.js 10 && echo 'Test generation completed'",
+    "test-ssl": "node test-ssl.js"
   },
   "dependencies": {
     "pg": "^8.11.3"

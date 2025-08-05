@@ -4,11 +4,45 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
+function getSSLConfig() {
+  const sslMode = process.env.DB_SSL_MODE || 'disable';
+  
+  console.log(`🔒 SSL Mode: ${sslMode}`);
+  
+  switch (sslMode.toLowerCase()) {
+    case 'disable':
+      return false;
+    
+    case 'require':
+      return { rejectUnauthorized: false };
+    
+    case 'verify-ca':
+      return {
+        rejectUnauthorized: true,
+        ca: process.env.DB_SSL_ROOT_CERT ? [process.env.DB_SSL_ROOT_CERT] : undefined
+      };
+    
+    case 'verify-full':
+      return {
+        rejectUnauthorized: true,
+        ca: process.env.DB_SSL_ROOT_CERT ? [process.env.DB_SSL_ROOT_CERT] : undefined,
+        cert: process.env.DB_SSL_CERT,
+        key: process.env.DB_SSL_KEY
+      };
+    
+    default:
+      console.log(`⚠️ Unknown SSL mode '${sslMode}', defaulting to 'disable'`);
+      return false;
+  }
+}
+
 async function connectToDatabase(retries = 10) {
+  const sslConfig = getSSLConfig();
+  
   for (let i = 0; i < retries; i++) {
     const client = new Client({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.DB_SSL_MODE === 'disable' ? false : { rejectUnauthorized: false }
+      ssl: sslConfig
     });
 
     try {
