@@ -5,14 +5,14 @@ This directory contains tools to generate and inject realistic fake doctor data 
 
 ## 🎯 Purpose
 
-- Generate 1500+ realistic French doctors with diverse specialties
+- Generate 1500+ realistic English doctors with diverse specialties
 - Populate database for demo and testing purposes
 - Support Qovery lifecycle jobs for automated seeding
 - Provide local testing capabilities
 
 ## 📁 Files
 
-- `generate-doctors.js` - Generates fake doctor data with realistic French names and medical specialties
+- `generate-doctors.js` - Generates fake doctor data with realistic English names and medical specialties
 - `seed.js` - Injects generated data into PostgreSQL database
 - `package.json` - Node.js dependencies and scripts
 - `Dockerfile` - Container for Qovery lifecycle job
@@ -78,13 +78,13 @@ db_ssl_mode = "disable"   # Database SSL mode
 ## 📊 Generated Data
 
 ### Doctor Attributes
-- **Names**: Realistic French first and last names
+- **Names**: Realistic English first and last names
 - **Specialties**: 35+ medical specialties (généraliste, cardiologue, etc.)
 - **Locations**: Paris districts and nearby cities
 - **Ratings**: 3.0-5.0 (weighted toward higher ratings)
 - **Prices**: €50-200 (specialists cost more)
 - **Experience**: 3-40 years
-- **Languages**: French combinations with other languages
+- **Languages**: English combinations with other languages
 - **Avatars**: Professional photos from Unsplash
 
 ### Statistics (1500 doctors)
@@ -100,14 +100,14 @@ db_ssl_mode = "disable"   # Database SSL mode
 ```json
 {
   "id": 1,
-  "name": "Dr. Marie Dubois",
-  "specialty": "Médecin généraliste",
-  "location": "Paris 1er",
+  "name": "Dr. Sandra Jackson",
+  "specialty": "General Practitioner",
+  "location": "New York, NY",
   "rating": 4.8,
   "price_per_hour": 60,
   "avatar": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2",
   "experience_years": 15,
-  "languages": "Français, Anglais"
+  "languages": "English, Spanish"
 }
 ```
 
@@ -125,7 +125,7 @@ CREATE TABLE doctors (
     price_per_hour INTEGER DEFAULT 0,
     avatar TEXT,
     experience_years INTEGER DEFAULT 0,
-    languages TEXT DEFAULT 'French',
+    languages TEXT DEFAULT 'English',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

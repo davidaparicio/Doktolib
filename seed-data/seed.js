@@ -77,7 +77,7 @@ async function createSchema(client) {
         price_per_hour INTEGER DEFAULT 0,
         avatar TEXT,
         experience_years INTEGER DEFAULT 0,
-        languages TEXT DEFAULT 'French',
+        languages TEXT DEFAULT 'English',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );

@@ -3,57 +3,56 @@
 const fs = require('fs');
 const path = require('path');
 
-// French names and medical specialties
+// English names and medical specialties
 const firstNames = {
   male: [
-    'Pierre', 'Jean', 'Michel', 'Philippe', 'Alain', 'Bernard', 'Robert', 'Jacques', 'Daniel', 'Christophe',
-    'François', 'Paul', 'Nicolas', 'Marc', 'David', 'Thierry', 'Laurent', 'Patrick', 'Olivier', 'Antoine',
-    'Julien', 'Sébastien', 'Frédéric', 'Stéphane', 'Vincent', 'Emmanuel', 'Bruno', 'Thomas', 'Maxime', 'Alexandre',
-    'Jérôme', 'Florian', 'Romain', 'Mathieu', 'Damien', 'Fabrice', 'Ludovic', 'Cédric', 'Guillaume', 'Yann',
-    'Arnaud', 'Éric', 'Didier', 'Gérard', 'Hervé', 'Serge', 'Claude', 'Henri', 'André', 'Raymond'
+    'James', 'Robert', 'John', 'Michael', 'David', 'William', 'Richard', 'Thomas', 'Christopher', 'Charles',
+    'Daniel', 'Matthew', 'Anthony', 'Mark', 'Donald', 'Steven', 'Paul', 'Andrew', 'Joshua', 'Kenneth',
+    'Kevin', 'Brian', 'George', 'Timothy', 'Ronald', 'Jason', 'Edward', 'Jeffrey', 'Ryan', 'Jacob',
+    'Gary', 'Nicholas', 'Eric', 'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon', 'Benjamin',
+    'Samuel', 'Gregory', 'Alexander', 'Patrick', 'Raymond', 'Jack', 'Dennis', 'Jerry', 'Tyler', 'Aaron'
   ],
   female: [
-    'Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Françoise', 'Anne', 'Brigitte', 'Monique', 'Christine',
-    'Sophie', 'Valérie', 'Sandrine', 'Céline', 'Martine', 'Véronique', 'Caroline', 'Stéphanie', 'Dominique', 'Patricia',
-    'Julie', 'Amélie', 'Émilie', 'Laure', 'Aurélie', 'Claire', 'Hélène', 'Camille', 'Pauline', 'Lucie',
-    'Delphine', 'Florence', 'Karine', 'Muriel', 'Corinne', 'Élise', 'Agnès', 'Nadine', 'Chantal', 'Laurence',
-    'Béatrice', 'Pascale', 'Odile', 'Nicole', 'Denise', 'Jacqueline', 'Michèle', 'Colette', 'Yvette', 'Simone'
+    'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen',
+    'Nancy', 'Lisa', 'Betty', 'Helen', 'Sandra', 'Donna', 'Carol', 'Ruth', 'Sharon', 'Michelle',
+    'Laura', 'Sarah', 'Kimberly', 'Deborah', 'Dorothy', 'Lisa', 'Nancy', 'Karen', 'Betty', 'Helen',
+    'Sandra', 'Donna', 'Carol', 'Ruth', 'Sharon', 'Michelle', 'Laura', 'Sarah', 'Kimberly', 'Deborah',
+    'Amy', 'Angela', 'Ashley', 'Brenda', 'Emma', 'Olivia', 'Cynthia', 'Marie', 'Janet', 'Frances'
   ]
 };
 
 const lastNames = [
-  'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau',
-  'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'David', 'Bertrand', 'Roux', 'Vincent', 'Fournier',
-  'Morel', 'Girard', 'André', 'Lefèvre', 'Mercier', 'Dupont', 'Lambert', 'Bonnet', 'François', 'Martinez',
-  'Legrand', 'Garnier', 'Faure', 'Rousseau', 'Blanc', 'Guerin', 'Muller', 'Henry', 'Roussel', 'Nicolas',
-  'Perrin', 'Morin', 'Mathieu', 'Clement', 'Gauthier', 'Dumont', 'Lopez', 'Fontaine', 'Chevalier', 'Robin',
-  'Masson', 'Sanchez', 'Gerard', 'Nguyen', 'Boyer', 'Denis', 'Lemaire', 'Duval', 'Joly', 'Gautier',
-  'Roger', 'Roche', 'Roy', 'Noel', 'Meyer', 'Lucas', 'Meunier', 'Jean', 'Perez', 'Marchand',
-  'Dufour', 'Blanchard', 'Marie', 'Barbier', 'Brun', 'Dumas', 'Brunet', 'Schmitt', 'Leroux', 'Colin'
+  'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
+  'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin',
+  'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson',
+  'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
+  'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts',
+  'Gomez', 'Phillips', 'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes',
+  'Stewart', 'Morris', 'Morales', 'Murphy', 'Cook', 'Rogers', 'Gutierrez', 'Ortiz', 'Morgan', 'Cooper'
 ];
 
 const specialties = [
-  'Médecin généraliste', 'Cardiologue', 'Dermatologue', 'Gynécologue', 'Pédiatre', 'Psychiatre', 'Neurologue',
-  'Ophtalmologue', 'ORL', 'Orthopédiste', 'Rhumatologue', 'Endocrinologue', 'Gastro-entérologue', 'Pneumologue',
-  'Urologue', 'Chirurgien', 'Anesthésiste', 'Radiologue', 'Oncologue', 'Dentiste', 'Orthodontiste',
-  'Chirurgien-dentiste', 'Kinésithérapeute', 'Ostéopathe', 'Sage-femme', 'Infirmier', 'Pharmacien',
-  'Allergologue', 'Gériatre', 'Néphrologue', 'Hématologue', 'Infectiologue', 'Médecin du travail',
-  'Médecin urgentiste', 'Réanimateur', 'Pathologiste', 'Médecin légiste', 'Addictologue', 'Sexologue'
+  'General Practitioner', 'Cardiologist', 'Dermatologist', 'Gynecologist', 'Pediatrician', 'Psychiatrist', 'Neurologist',
+  'Ophthalmologist', 'ENT Specialist', 'Orthopedist', 'Rheumatologist', 'Endocrinologist', 'Gastroenterologist', 'Pulmonologist',
+  'Urologist', 'Surgeon', 'Anesthesiologist', 'Radiologist', 'Oncologist', 'Dentist', 'Orthodontist',
+  'Oral Surgeon', 'Physical Therapist', 'Osteopath', 'Midwife', 'Nurse Practitioner', 'Pharmacist',
+  'Allergist', 'Geriatrician', 'Nephrologist', 'Hematologist', 'Infectious Disease Specialist', 'Occupational Medicine',
+  'Emergency Medicine', 'Critical Care Medicine', 'Pathologist', 'Forensic Medicine', 'Addiction Medicine', 'Sexologist'
 ];
 
-const parisDistricts = [
-  'Paris 1er', 'Paris 2ème', 'Paris 3ème', 'Paris 4ème', 'Paris 5ème', 'Paris 6ème', 'Paris 7ème', 'Paris 8ème',
-  'Paris 9ème', 'Paris 10ème', 'Paris 11ème', 'Paris 12ème', 'Paris 13ème', 'Paris 14ème', 'Paris 15ème', 'Paris 16ème',
-  'Paris 17ème', 'Paris 18ème', 'Paris 19ème', 'Paris 20ème', 'Boulogne-Billancourt', 'Saint-Denis', 'Argenteuil',
-  'Montreuil', 'Créteil', 'Nanterre', 'Asnières-sur-Seine', 'Versailles', 'Courbevoie', 'Vitry-sur-Seine',
-  'Champigny-sur-Marne', 'Rueil-Malmaison', 'Aubervilliers', 'Levallois-Perret', 'Issy-les-Moulineaux',
-  'Antony', 'Neuilly-sur-Seine', 'Clichy', 'Ivry-sur-Seine', 'Villejuif'
+const usaCities = [
+  'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA',
+  'Dallas, TX', 'San Jose, CA', 'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Charlotte, NC', 'San Francisco, CA',
+  'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Washington, DC', 'Boston, MA', 'El Paso, TX', 'Nashville, TN', 'Detroit, MI',
+  'Oklahoma City, OK', 'Portland, OR', 'Las Vegas, NV', 'Memphis, TN', 'Louisville, KY', 'Baltimore, MD', 'Milwaukee, WI', 'Albuquerque, NM',
+  'Tucson, AZ', 'Fresno, CA', 'Sacramento, CA', 'Mesa, AZ', 'Kansas City, MO', 'Atlanta, GA', 'Long Beach, CA', 'Colorado Springs, CO',
+  'Raleigh, NC', 'Miami, FL', 'Virginia Beach, VA', 'Omaha, NE', 'Oakland, CA', 'Minneapolis, MN', 'Tulsa, OK', 'Tampa, FL'
 ];
 
 const languages = [
-  'Français', 'Français, Anglais', 'Français, Espagnol', 'Français, Italien', 'Français, Allemand',
-  'Français, Arabe', 'Français, Portugais', 'Français, Anglais, Espagnol', 'Français, Anglais, Italien',
-  'Français, Anglais, Allemand', 'Français, Mandarin', 'Français, Russe', 'Français, Japonais'
+  'English', 'English, Spanish', 'English, French', 'English, German', 'English, Italian',
+  'English, Arabic', 'English, Portuguese', 'English, Spanish, French', 'English, French, Italian',
+  'English, German, French', 'English, Mandarin', 'English, Russian', 'English, Japanese'
 ];
 
 // Avatar URLs from diverse professional photos
@@ -98,7 +97,7 @@ function generateDoctor(id) {
   const firstName = getRandomElement(firstNames[gender]);
   const lastName = getRandomElement(lastNames);
   const specialty = getRandomElement(specialties);
-  const location = getRandomElement(parisDistricts);
+  const location = getRandomElement(usaCities);
   
   // Rating distribution: mostly 4.0-5.0, few lower
   const rating = Math.random() > 0.1 ? getRandomFloat(4.0, 5.0) : getRandomFloat(3.0, 4.0);
@@ -202,7 +201,7 @@ function main() {
   
   console.log(`🏥 Doktolib Seed Data Generator`);
   console.log(`===============================`);
-  console.log(`Generating ${doctorCount} doctors with realistic French data...`);
+  console.log(`Generating ${doctorCount} doctors with realistic English data...`);
   
   const doctors = generateDoctors(doctorCount);
   const sql = generateSQL(doctors);
