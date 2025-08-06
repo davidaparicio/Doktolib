@@ -72,10 +72,11 @@ source "$ENV_FILE"
 set +a
 
 print_status "Configuration loaded from $ENV_FILE"
-print_status "Frontend will connect to: ${NEXT_PUBLIC_API_URL}"
+print_status "Frontend will be built with API URL: ${NEXT_PUBLIC_API_URL}"
 
-# Run docker compose
-print_status "Starting services with Docker Compose..."
+# Run docker compose with build args
+print_status "Starting services with Docker Compose (building with API URL)..."
+print_warning "Note: Frontend is rebuilt with the specified API URL"
 docker compose up --build
 
 print_status "Services started successfully!"

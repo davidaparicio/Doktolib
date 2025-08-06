@@ -30,9 +30,11 @@ The application uses environment variables for flexible configuration across dif
 
 #### Frontend Configuration
 - `NEXT_PUBLIC_API_URL`: Backend API URL (default: `http://localhost:8080`)
+  - **Build-time variable**: Set during Docker build process
   - Local development: `http://localhost:8080`
   - Docker: `http://backend:8080`
   - Production: `https://your-backend-domain.com`
+  - **Note**: Requires frontend rebuild when changed
 
 #### Backend Configuration
 - `DATABASE_URL`: PostgreSQL connection string
@@ -113,12 +115,20 @@ NEXT_PUBLIC_API_URL=http://backend:8080 docker compose up --build
 
 **Manual Docker Commands:**
 ```bash
-# Build and start all services
+# Build and start all services with default API URL
 docker compose up --build
+
+# Build with custom API URL (for production)
+NEXT_PUBLIC_API_URL=https://api.example.com docker compose up --build
+
+# Build frontend only with custom API URL
+docker build frontend --build-arg NEXT_PUBLIC_API_URL=https://api.example.com
 
 # Start specific services
 docker compose up postgres backend
 ```
+
+**Important**: The frontend is built with the API URL at **build time**, not runtime. To change the API URL, you must rebuild the frontend with the new `NEXT_PUBLIC_API_URL` value.
 
 *Note: Docker builds may take time depending on network speed*
 
