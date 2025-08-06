@@ -154,7 +154,7 @@ async function seedDatabase(client, force = false) {
       const batch = doctors.slice(i, i + batchSize);
       
       const values = batch.map((doctor, index) => {
-        const baseIndex = i * 8 + index * 8;
+        const baseIndex = index * 8;
         return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8})`;
       }).join(', ');
       
