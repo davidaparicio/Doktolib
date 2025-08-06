@@ -249,15 +249,15 @@ docker compose up postgres backend
 
 ## 🌱 Seed Data System
 
-### Realistic French Medical Data
-- **1500+ doctors** with authentic French names
+### Realistic English Medical Data
+- **1500+ doctors** with authentic English names
 - **35+ medical specialties** (généraliste, cardiologue, dermatologue, etc.)
 - **40+ locations** across Paris and nearby cities
 - **Professional avatars** from Unsplash
 - **Realistic ratings** (3.0-5.0, weighted toward higher ratings)
 - **Market-based pricing** (specialists cost more)
 - **Diverse experience levels** (3-40 years)
-- **Multilingual support** (French + international languages)
+- **Multilingual support** (English + international languages)
 
 ### Automated Injection
 - **Qovery Lifecycle Job**: Runs automatically after database deployment

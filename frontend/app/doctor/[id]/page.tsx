@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
 import { format, addDays, startOfToday, isAfter, isBefore, endOfDay } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 
 interface Doctor {
   id: string
@@ -271,7 +271,7 @@ export default function DoctorDetail() {
                               : 'bg-white text-gray-700 border-gray-300 hover:border-doctolib-blue'
                           }`}
                         >
-                          <div className="font-medium">{format(date, 'EEE', { locale: fr })}</div>
+                          <div className="font-medium">{format(date, 'EEE', { locale: enUS })}</div>
                           <div>{format(date, 'd')}</div>
                         </button>
                       ))}
