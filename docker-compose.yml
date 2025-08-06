@@ -35,5 +35,17 @@ services:
     depends_on:
       - backend
 
+  load-generator:
+    build: ./load-generator
+    environment:
+      - API_URL=http://backend:8080
+      - SCENARIO=${LOAD_SCENARIO:-normal}
+      - DURATION_MINUTES=${LOAD_DURATION:-60}
+      - LOG_LEVEL=${LOAD_LOG_LEVEL:-info}
+    depends_on:
+      - backend
+    profiles:
+      - loadtest
+
 volumes:
   postgres_data:

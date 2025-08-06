@@ -1,0 +1,24 @@
+{
+  "name": "doktolib-load-generator",
+  "version": "1.0.0",
+  "description": "Load generator to simulate user traffic on Doktolib API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "light": "SCENARIO=light node index.js",
+    "normal": "SCENARIO=normal node index.js", 
+    "heavy": "SCENARIO=heavy node index.js",
+    "stress": "SCENARIO=stress node index.js"
+  },
+  "keywords": ["load", "testing", "api", "simulation", "doktolib"],
+  "author": "Doktolib Load Generator",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "faker": "^5.5.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
