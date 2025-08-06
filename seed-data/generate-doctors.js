@@ -102,10 +102,10 @@ function generateDoctor(id) {
   // Rating distribution: mostly 4.0-5.0, few lower
   const rating = Math.random() > 0.1 ? getRandomFloat(4.0, 5.0) : getRandomFloat(3.0, 4.0);
   
-  // Price based on specialty (specialists cost more)
-  const specialistSpecialties = ['Cardiologue', 'Neurologue', 'Chirurgien', 'Oncologue', 'Ophtalmologue'];
+  // Price based on specialty (specialists cost more) - USD pricing
+  const specialistSpecialties = ['Cardiologist', 'Neurologist', 'Surgeon', 'Oncologist', 'Ophthalmologist'];
   const isSpecialist = specialistSpecialties.includes(specialty);
-  const basePrice = isSpecialist ? getRandomInt(100, 200) : getRandomInt(50, 120);
+  const basePrice = isSpecialist ? getRandomInt(150, 300) : getRandomInt(80, 180);
   
   // Experience years
   const experienceYears = getRandomInt(3, 40);

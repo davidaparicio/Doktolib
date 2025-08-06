@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Link from 'next/link'
-import Image from 'next/image'
-import { MagnifyingGlassIcon, MapPinIcon, StarIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, StarIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
+import DoctorAvatar from '../components/DoctorAvatar'
+import { specialties, cities } from '../constants/searchOptions'
 
 interface Doctor {
   id: string
@@ -127,24 +128,36 @@ export default function Home() {
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Specialty, condition..."
-                      className="input-field pl-10"
+                    <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                    <ChevronDownIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400 z-10 pointer-events-none" />
+                    <select
+                      className="input-field pl-10 pr-10 appearance-none"
                       value={searchSpecialty}
                       onChange={(e) => setSearchSpecialty(e.target.value)}
-                    />
+                    >
+                      <option value="">All specialties</option>
+                      {specialties.map((specialty) => (
+                        <option key={specialty} value={specialty}>
+                          {specialty}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="relative">
-                    <MapPinIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Where? (city, postal code...)"
-                      className="input-field pl-10"
+                    <MapPinIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                    <ChevronDownIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400 z-10 pointer-events-none" />
+                    <select
+                      className="input-field pl-10 pr-10 appearance-none"
                       value={searchLocation}
                       onChange={(e) => setSearchLocation(e.target.value)}
-                    />
+                    >
+                      <option value="">All locations</option>
+                      {cities.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button type="submit" className="btn-primary w-full">
                     Search
@@ -183,7 +196,7 @@ export default function Home() {
               {doctors.map((doctor) => (
                 <div key={doctor.id} className="card hover:shadow-md transition-shadow duration-200">
                   <div className="flex items-start space-x-4 mb-4">
-                    <Image
+                    <DoctorAvatar
                       src={doctor.avatar}
                       alt={doctor.name}
                       width={64}
@@ -205,7 +218,7 @@ export default function Home() {
                       {renderStars(doctor.rating)}
                       <span className="text-sm text-gray-600 ml-1">({doctor.rating})</span>
                     </div>
-                    <span className="text-lg font-semibold text-gray-900">{doctor.price_per_hour}€</span>
+                    <span className="text-lg font-semibold text-gray-900">${doctor.price_per_hour}</span>
                   </div>
                   
                   <div className="text-sm text-gray-600 mb-4">

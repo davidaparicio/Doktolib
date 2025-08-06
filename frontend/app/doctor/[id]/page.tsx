@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import axios from 'axios'
 import Image from 'next/image'
+import DoctorAvatar from '../../../components/DoctorAvatar'
 import toast from 'react-hot-toast'
 import { 
   ArrowLeftIcon, 
@@ -205,7 +206,7 @@ export default function DoctorDetail() {
           <div className="lg:col-span-2">
             <div className="card">
               <div className="flex items-start space-x-6 mb-6">
-                <Image
+                <DoctorAvatar
                   src={doctor.avatar}
                   alt={doctor.name}
                   width={120}
@@ -231,7 +232,7 @@ export default function DoctorDetail() {
                     </div>
                     <div className="flex items-center">
                       <ClockIcon className="h-5 w-5 mr-2" />
-                      {doctor.price_per_hour}€ / consultation
+                      ${doctor.price_per_hour} / consultation
                     </div>
                   </div>
                   
@@ -375,7 +376,7 @@ export default function DoctorDetail() {
               <h3 className="text-lg font-semibold mb-4">Practical information</h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <span className="font-medium">Rate:</span> {doctor.price_per_hour}€
+                  <span className="font-medium">Rate:</span> ${doctor.price_per_hour}
                 </div>
                 <div>
                   <span className="font-medium">Duration:</span> 30-60 minutes
