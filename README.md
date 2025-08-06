@@ -22,6 +22,30 @@ A modern Doctolib clone built to showcase Qovery's powerful deployment and DevOp
 - 📊 Health checks and monitoring
 - 🚀 Auto-deployment with GitOps
 
+## 🔧 Configuration
+
+### Environment Variables
+
+The application uses environment variables for flexible configuration across different environments.
+
+#### Frontend Configuration
+- `NEXT_PUBLIC_API_URL`: Backend API URL (default: `http://localhost:8080`)
+  - Local development: `http://localhost:8080`
+  - Docker: `http://backend:8080`
+  - Production: `https://your-backend-domain.com`
+
+#### Backend Configuration
+- `DATABASE_URL`: PostgreSQL connection string
+- `DB_SSL_MODE`: SSL mode (disable/require/verify-ca/verify-full)
+- `PORT`: Server port (default: 8080)
+- `GIN_MODE`: Gin framework mode (debug/release)
+
+#### Environment Files
+- `.env.example`: Template with all available variables
+- `.env.local`: Local development configuration
+- `.env.docker`: Docker container configuration
+- `.env.production`: Production configuration (create as needed)
+
 ## 🚀 Quick Start
 
 ### Local Development
@@ -73,10 +97,29 @@ This script will:
    - Backend API: http://localhost:8080/api/v1
    - Database: localhost:5432
 
-#### Option 3: Full Docker Compose
+#### Option 3: Docker Compose (Recommended)
+
+**Easy Docker Startup:**
 ```bash
-docker compose up --build
+# Local configuration (frontend connects to localhost:8080)
+./run-docker.sh local
+
+# Docker configuration (container-to-container communication)  
+./run-docker.sh docker
+
+# Or manually with environment control:
+NEXT_PUBLIC_API_URL=http://backend:8080 docker compose up --build
 ```
+
+**Manual Docker Commands:**
+```bash
+# Build and start all services
+docker compose up --build
+
+# Start specific services
+docker compose up postgres backend
+```
+
 *Note: Docker builds may take time depending on network speed*
 
 ### Production Deployment with Qovery
