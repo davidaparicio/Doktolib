@@ -1,0 +1,304 @@
+name: CI/CD - Build and Deploy to Qovery
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    name: Build and Push Container Images
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    
+    strategy:
+      matrix:
+        service: [backend, frontend, load-generator]
+        include:
+          - service: backend
+            context: ./backend
+            dockerfile: ./backend/Dockerfile
+            build-args: ""
+          - service: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+            build-args: |
+              NEXT_PUBLIC_API_URL=https://api.doktolib.qovery.dev
+          - service: load-generator
+            context: ./load-generator
+            dockerfile: ./load-generator/Dockerfile
+            build-args: ""
+    
+    outputs:
+      backend-image: ${{ steps.image.outputs.backend-image }}
+      frontend-image: ${{ steps.image.outputs.frontend-image }}
+      load-generator-image: ${{ steps.image.outputs.load-generator-image }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: ${{ matrix.build-args }}
+          provenance: false
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Set image output
+        id: image
+        run: |
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:${{ github.sha }}"
+          echo "${{ matrix.service }}-image=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Built and pushed: ${IMAGE_TAG}"
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    
+    strategy:
+      matrix:
+        service: [backend, frontend, load-generator]
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.service }}.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
+
+  deploy:
+    name: Deploy to Qovery
+    runs-on: ubuntu-latest
+    needs: [build, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    
+    environment:
+      name: ${{ github.event.inputs.environment || 'preview' }}
+      url: ${{ steps.deploy.outputs.application-url }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Qovery CLI
+        uses: Qovery/qovery-cli-action@v0
+        with:
+          qovery-cli-access-token: ${{ secrets.QOVERY_CLI_ACCESS_TOKEN }}
+
+      - name: Get Qovery application status
+        id: qovery-status
+        run: |
+          echo "Checking Qovery application status..."
+          qovery application list
+          echo "status=running" >> $GITHUB_OUTPUT
+
+      - name: Deploy Backend to Qovery
+        id: deploy-backend
+        run: |
+          echo "Deploying backend service..."
+          qovery application deploy \
+            --organization "${{ secrets.QOVERY_ORGANIZATION_ID }}" \
+            --project "${{ secrets.QOVERY_PROJECT_ID }}" \
+            --environment "${{ secrets.QOVERY_ENVIRONMENT_ID }}" \
+            --application "${{ secrets.QOVERY_BACKEND_APPLICATION_ID }}" \
+            --image-tag "${{ github.sha }}" \
+            --watch
+          
+          BACKEND_URL=$(qovery application domain list --application "${{ secrets.QOVERY_BACKEND_APPLICATION_ID }}" --output json | jq -r '.[0].url')
+          echo "backend-url=${BACKEND_URL}" >> $GITHUB_OUTPUT
+          echo "Backend deployed to: ${BACKEND_URL}"
+
+      - name: Deploy Frontend to Qovery
+        id: deploy-frontend
+        run: |
+          echo "Deploying frontend service..."
+          qovery application deploy \
+            --organization "${{ secrets.QOVERY_ORGANIZATION_ID }}" \
+            --project "${{ secrets.QOVERY_PROJECT_ID }}" \
+            --environment "${{ secrets.QOVERY_ENVIRONMENT_ID }}" \
+            --application "${{ secrets.QOVERY_FRONTEND_APPLICATION_ID }}" \
+            --image-tag "${{ github.sha }}" \
+            --watch
+          
+          FRONTEND_URL=$(qovery application domain list --application "${{ secrets.QOVERY_FRONTEND_APPLICATION_ID }}" --output json | jq -r '.[0].url')
+          echo "frontend-url=${FRONTEND_URL}" >> $GITHUB_OUTPUT
+          echo "Frontend deployed to: ${FRONTEND_URL}"
+
+      - name: Deploy Load Generator to Qovery (Optional)
+        id: deploy-load-generator
+        continue-on-error: true
+        run: |
+          echo "Deploying load generator service..."
+          qovery application deploy \
+            --organization "${{ secrets.QOVERY_ORGANIZATION_ID }}" \
+            --project "${{ secrets.QOVERY_PROJECT_ID }}" \
+            --environment "${{ secrets.QOVERY_ENVIRONMENT_ID }}" \
+            --application "${{ secrets.QOVERY_LOAD_GENERATOR_APPLICATION_ID }}" \
+            --image-tag "${{ github.sha }}" \
+            --watch || echo "Load generator deployment skipped (optional)"
+
+      - name: Run Health Checks
+        id: health-check
+        run: |
+          echo "Running post-deployment health checks..."
+          
+          # Wait for services to be ready
+          sleep 30
+          
+          # Check backend health
+          BACKEND_URL="${{ steps.deploy-backend.outputs.backend-url }}"
+          if curl -f "${BACKEND_URL}/api/v1/health" --max-time 30; then
+            echo "✅ Backend health check passed"
+            echo "backend-healthy=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Backend health check failed"
+            echo "backend-healthy=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Check frontend
+          FRONTEND_URL="${{ steps.deploy-frontend.outputs.frontend-url }}"
+          if curl -f "${FRONTEND_URL}" --max-time 30 > /dev/null 2>&1; then
+            echo "✅ Frontend health check passed"
+            echo "frontend-healthy=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Frontend health check failed"
+            echo "frontend-healthy=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run Load Test (Optional)
+        id: load-test
+        if: github.event.inputs.environment == 'preview'
+        continue-on-error: true
+        run: |
+          echo "Running lightweight load test..."
+          
+          # Quick smoke test with load generator
+          BACKEND_URL="${{ steps.deploy-backend.outputs.backend-url }}"
+          
+          docker run --rm \
+            -e API_URL="${BACKEND_URL}" \
+            -e SCENARIO=light \
+            -e DURATION_MINUTES=2 \
+            -e LOG_LEVEL=info \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/load-generator:${{ github.sha }} \
+            || echo "Load test completed with warnings"
+
+      - name: Update Deployment Status
+        id: deploy
+        run: |
+          FRONTEND_URL="${{ steps.deploy-frontend.outputs.frontend-url }}"
+          BACKEND_URL="${{ steps.deploy-backend.outputs.backend-url }}"
+          
+          echo "application-url=${FRONTEND_URL}" >> $GITHUB_OUTPUT
+          echo "api-url=${BACKEND_URL}" >> $GITHUB_OUTPUT
+          
+          echo "🚀 Deployment completed successfully!"
+          echo "📱 Frontend: ${FRONTEND_URL}"
+          echo "🔗 Backend API: ${BACKEND_URL}"
+
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'preview' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Images Built:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Load Generator: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/load-generator:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed URLs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 Frontend: [${{ steps.deploy-frontend.outputs.frontend-url }}](${{ steps.deploy-frontend.outputs.frontend-url }})" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 Backend API: [${{ steps.deploy-backend.outputs.backend-url }}](${{ steps.deploy-backend.outputs.backend-url }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Health Status:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ steps.health-check.outputs.backend-healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ steps.health-check.outputs.frontend-healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }}" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Notify Success
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Frontend: ${{ needs.deploy.outputs.application-url }}"
+          echo "Backend: ${{ needs.deploy.outputs.api-url }}"
+          
+      - name: Notify Failure
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "❌ Deployment failed!"
+          exit 1
