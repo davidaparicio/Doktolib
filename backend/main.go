@@ -506,6 +506,82 @@ func createPrescription(c *gin.Context) {
 	c.JSON(http.StatusCreated, prescription)
 }
 
+func getDoctorPrescriptions(c *gin.Context) {
+	doctorID := c.Param("doctorId")
+	patientName := c.Query("patient")
+	medication := c.Query("medication")
+	
+	query := `
+		SELECT p.id, p.appointment_id, p.doctor_id, p.patient_name, p.medications, p.dosage, p.instructions, p.created_at,
+		       a.date_time, a.duration_minutes, a.status
+		FROM prescriptions p
+		LEFT JOIN appointments a ON p.appointment_id = a.id
+		WHERE p.doctor_id = $1
+	`
+	args := []interface{}{doctorID}
+	argCount := 1
+	
+	if patientName != "" {
+		argCount++
+		query += fmt.Sprintf(" AND LOWER(p.patient_name) LIKE LOWER($%d)", argCount)
+		args = append(args, "%"+patientName+"%")
+	}
+	
+	if medication != "" {
+		argCount++
+		query += fmt.Sprintf(" AND LOWER(p.medications) LIKE LOWER($%d)", argCount)
+		args = append(args, "%"+medication+"%")
+	}
+	
+	query += " ORDER BY p.created_at DESC"
+	
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch prescriptions"})
+		return
+	}
+	defer rows.Close()
+
+	type PrescriptionWithAppointment struct {
+		ID            string    `json:"id"`
+		AppointmentID string    `json:"appointment_id"`
+		DoctorID      string    `json:"doctor_id"`
+		PatientName   string    `json:"patient_name"`
+		Medications   string    `json:"medications"`
+		Dosage        string    `json:"dosage"`
+		Instructions  string    `json:"instructions"`
+		CreatedAt     time.Time `json:"created_at"`
+		AppointmentDate time.Time `json:"appointment_date"`
+		AppointmentDuration int   `json:"appointment_duration"`
+		AppointmentStatus string  `json:"appointment_status"`
+	}
+
+	var prescriptions []PrescriptionWithAppointment
+	for rows.Next() {
+		var prescription PrescriptionWithAppointment
+		err := rows.Scan(
+			&prescription.ID,
+			&prescription.AppointmentID,
+			&prescription.DoctorID,
+			&prescription.PatientName,
+			&prescription.Medications,
+			&prescription.Dosage,
+			&prescription.Instructions,
+			&prescription.CreatedAt,
+			&prescription.AppointmentDate,
+			&prescription.AppointmentDuration,
+			&prescription.AppointmentStatus,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan prescription"})
+			return
+		}
+		prescriptions = append(prescriptions, prescription)
+	}
+
+	c.JSON(http.StatusOK, prescriptions)
+}
+
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "healthy",
@@ -537,6 +613,7 @@ func main() {
 		api.GET("/appointments", getAppointments)
 		api.GET("/appointments/doctor/:doctorId", getDoctorAppointments)
 		api.POST("/prescriptions", createPrescription)
+		api.GET("/prescriptions/doctor/:doctorId", getDoctorPrescriptions)
 	}
 
 	port := os.Getenv("PORT")

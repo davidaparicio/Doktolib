@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { 
@@ -243,9 +244,18 @@ export default function DoctorDashboard() {
                 <p className="text-gray-600">Welcome, Dr. {doctor.name}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">{doctor.specialty}</p>
-              <p className="text-sm text-gray-600">{doctor.location}</p>
+            <div className="flex items-center space-x-4">
+              <Link
+                href={`/doctor-prescriptions/${doctorId}`}
+                className="btn-secondary flex items-center"
+              >
+                <DocumentTextIcon className="h-4 w-4 mr-2" />
+                My Prescriptions
+              </Link>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">{doctor.specialty}</p>
+                <p className="text-sm text-gray-600">{doctor.location}</p>
+              </div>
             </div>
           </div>
         </div>
