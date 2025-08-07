@@ -17,6 +17,7 @@ Configure these secrets in your GitHub repository settings (`Settings` → `Secr
 | `QOVERY_BACKEND_APPLICATION_ID` | Backend app ID in Qovery | `qovery application list` |
 | `QOVERY_FRONTEND_APPLICATION_ID` | Frontend app ID in Qovery | `qovery application list` |
 | `QOVERY_LOAD_GENERATOR_APPLICATION_ID` | Load generator app ID (optional) | `qovery application list` |
+| `QOVERY_SEED_DATA_JOB_ID` | Seed data job ID (optional) | `qovery job list` |
 
 ## Step-by-Step Setup
 
@@ -128,8 +129,23 @@ qovery application create \
   --environment-variable "DURATION_MINUTES=5"
 ```
 
-### 7. Get Application IDs
+#### Seed Data Job (Optional)
 
+```bash
+qovery job create \
+  --name "doktolib-seed-data" \
+  --container-image "ghcr.io/your-username/doktolib/seed-data" \
+  --container-image-tag "latest" \
+  --schedule "on_start" \
+  --environment-variable "DATABASE_URL=${{ qovery.database.DATABASE_URL }}" \
+  --environment-variable "DB_SSL_MODE=require" \
+  --environment-variable "DOCTOR_COUNT=1500" \
+  --environment-variable "FORCE_SEED=false"
+```
+
+### 7. Get Application and Job IDs
+
+**Get Application IDs:**
 ```bash
 qovery application list
 ```
@@ -142,10 +158,22 @@ doktolib-frontend      frontend456-7890-1234-5678-901234567 preview     RUNNING
 doktolib-load-generator loadgen789-0123-4567-8901-234567890 preview     STOPPED
 ```
 
-Copy the application IDs and add them as:
+**Get Job IDs:**
+```bash
+qovery job list
+```
+
+Example output:
+```
+NAME                 ID                                   ENVIRONMENT STATUS  
+doktolib-seed-data   seedjob123-4567-8901-2345-678901234 preview     SUCCESS
+```
+
+Copy the IDs and add them as GitHub secrets:
 - `QOVERY_BACKEND_APPLICATION_ID`
 - `QOVERY_FRONTEND_APPLICATION_ID` 
 - `QOVERY_LOAD_GENERATOR_APPLICATION_ID`
+- `QOVERY_SEED_DATA_JOB_ID`
 
 ## Database Setup
 

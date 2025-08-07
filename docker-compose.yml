@@ -47,5 +47,17 @@ services:
     profiles:
       - loadtest
 
+  seed-data:
+    build: ./seed-data
+    environment:
+      - DATABASE_URL=postgres://doktolib:password123@postgres:5432/doktolib
+      - DB_SSL_MODE=disable
+      - DOCTOR_COUNT=${SEED_DOCTOR_COUNT:-50}
+      - FORCE_SEED=${SEED_FORCE:-false}
+    depends_on:
+      - postgres
+    profiles:
+      - seed
+
 volumes:
   postgres_data:

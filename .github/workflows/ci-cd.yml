@@ -34,7 +34,7 @@ jobs:
     
     strategy:
       matrix:
-        service: [backend, frontend, load-generator]
+        service: [backend, frontend, load-generator, seed-data]
         include:
           - service: backend
             context: ./backend
@@ -49,11 +49,16 @@ jobs:
             context: ./load-generator
             dockerfile: ./load-generator/Dockerfile
             build-args: ""
+          - service: seed-data
+            context: ./seed-data
+            dockerfile: ./seed-data/Dockerfile
+            build-args: ""
     
     outputs:
       backend-image: ${{ steps.image.outputs.backend-image }}
       frontend-image: ${{ steps.image.outputs.frontend-image }}
       load-generator-image: ${{ steps.image.outputs.load-generator-image }}
+      seed-data-image: ${{ steps.image.outputs.seed-data-image }}
     
     steps:
       - name: Checkout repository
@@ -117,7 +122,7 @@ jobs:
     
     strategy:
       matrix:
-        service: [backend, frontend, load-generator]
+        service: [backend, frontend, load-generator, seed-data]
     
     steps:
       - name: Run Trivy vulnerability scanner
@@ -203,6 +208,19 @@ jobs:
             --image-tag "${{ github.sha }}" \
             --watch || echo "Load generator deployment skipped (optional)"
 
+      - name: Run Database Seed Job (Optional)
+        id: run-seed-job
+        continue-on-error: true
+        run: |
+          echo "Running database seed job..."
+          qovery job run \
+            --organization "${{ secrets.QOVERY_ORGANIZATION_ID }}" \
+            --project "${{ secrets.QOVERY_PROJECT_ID }}" \
+            --environment "${{ secrets.QOVERY_ENVIRONMENT_ID }}" \
+            --job "${{ secrets.QOVERY_SEED_DATA_JOB_ID }}" \
+            --image-tag "${{ github.sha }}" \
+            --wait || echo "Seed job execution skipped (optional)"
+
       - name: Run Health Checks
         id: health-check
         run: |
@@ -274,6 +292,7 @@ jobs:
           echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Load Generator: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/load-generator:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Seed Data: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/seed-data:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed URLs:**" >> $GITHUB_STEP_SUMMARY
           echo "- 🌐 Frontend: [${{ steps.deploy-frontend.outputs.frontend-url }}](${{ steps.deploy-frontend.outputs.frontend-url }})" >> $GITHUB_STEP_SUMMARY
