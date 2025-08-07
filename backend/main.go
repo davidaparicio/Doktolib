@@ -47,6 +47,36 @@ type CreateAppointmentRequest struct {
 	Duration     int    `json:"duration_minutes" binding:"required"`
 }
 
+type Prescription struct {
+	ID            string    `json:"id"`
+	AppointmentID string    `json:"appointment_id"`
+	DoctorID      string    `json:"doctor_id"`
+	PatientName   string    `json:"patient_name"`
+	Medications   string    `json:"medications"`
+	Dosage        string    `json:"dosage"`
+	Instructions  string    `json:"instructions"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type CreatePrescriptionRequest struct {
+	AppointmentID string `json:"appointment_id" binding:"required"`
+	Medications   string `json:"medications" binding:"required"`
+	Dosage        string `json:"dosage" binding:"required"`
+	Instructions  string `json:"instructions"`
+}
+
+type AppointmentWithPatientAndPrescription struct {
+	ID            string        `json:"id"`
+	DoctorID      string        `json:"doctor_id"`
+	PatientName   string        `json:"patient_name"`
+	PatientEmail  string        `json:"patient_email"`
+	DateTime      time.Time     `json:"date_time"`
+	Duration      int           `json:"duration_minutes"`
+	Status        string        `json:"status"`
+	CreatedAt     time.Time     `json:"created_at"`
+	Prescription  *Prescription `json:"prescription,omitempty"`
+}
+
 var db *sql.DB
 
 func initDB() {
@@ -313,6 +343,169 @@ func getAppointments(c *gin.Context) {
 	c.JSON(http.StatusOK, appointments)
 }
 
+func getDoctorAppointments(c *gin.Context) {
+	doctorID := c.Param("doctorId")
+	filter := c.Query("filter") // "past", "today", "future"
+	
+	query := `
+		SELECT a.id, a.doctor_id, a.patient_name, a.patient_email, a.date_time, a.duration_minutes, a.status, a.created_at,
+		       p.id, p.medications, p.dosage, p.instructions, p.created_at
+		FROM appointments a
+		LEFT JOIN prescriptions p ON a.id = p.appointment_id
+		WHERE a.doctor_id = $1
+	`
+	
+	// Add date filtering
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	tomorrow := today.AddDate(0, 0, 1)
+	
+	switch filter {
+	case "past":
+		query += " AND a.date_time < $2"
+	case "today":
+		query += " AND a.date_time >= $2 AND a.date_time < $3"
+	case "future":
+		query += " AND a.date_time >= $2"
+	}
+	
+	query += " ORDER BY a.date_time DESC"
+	
+	var rows *sql.Rows
+	var err error
+	
+	switch filter {
+	case "past":
+		rows, err = db.Query(query, doctorID, today)
+	case "today":
+		rows, err = db.Query(query, doctorID, today, tomorrow)
+	case "future":
+		rows, err = db.Query(query, doctorID, tomorrow)
+	default:
+		rows, err = db.Query(query[:len(query)-25]+" ORDER BY a.date_time DESC", doctorID) // Remove WHERE clause
+	}
+	
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch appointments"})
+		return
+	}
+	defer rows.Close()
+
+	var appointments []AppointmentWithPatientAndPrescription
+	for rows.Next() {
+		var appointment AppointmentWithPatientAndPrescription
+		var prescriptionID sql.NullString
+		var medications sql.NullString
+		var dosage sql.NullString
+		var instructions sql.NullString
+		var prescriptionCreatedAt sql.NullTime
+		
+		err := rows.Scan(
+			&appointment.ID,
+			&appointment.DoctorID,
+			&appointment.PatientName,
+			&appointment.PatientEmail,
+			&appointment.DateTime,
+			&appointment.Duration,
+			&appointment.Status,
+			&appointment.CreatedAt,
+			&prescriptionID,
+			&medications,
+			&dosage,
+			&instructions,
+			&prescriptionCreatedAt,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan appointment"})
+			return
+		}
+		
+		// Add prescription if exists
+		if prescriptionID.Valid {
+			appointment.Prescription = &Prescription{
+				ID:            prescriptionID.String,
+				AppointmentID: appointment.ID,
+				DoctorID:      appointment.DoctorID,
+				PatientName:   appointment.PatientName,
+				Medications:   medications.String,
+				Dosage:        dosage.String,
+				Instructions:  instructions.String,
+				CreatedAt:     prescriptionCreatedAt.Time,
+			}
+		}
+		
+		appointments = append(appointments, appointment)
+	}
+
+	c.JSON(http.StatusOK, appointments)
+}
+
+func createPrescription(c *gin.Context) {
+	var req CreatePrescriptionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Verify appointment exists and get doctor and patient info
+	var appointment Appointment
+	err := db.QueryRow(`
+		SELECT id, doctor_id, patient_name, patient_email, date_time, duration_minutes, status, created_at
+		FROM appointments WHERE id = $1
+	`, req.AppointmentID).Scan(
+		&appointment.ID, &appointment.DoctorID, &appointment.PatientName,
+		&appointment.PatientEmail, &appointment.DateTime, &appointment.Duration,
+		&appointment.Status, &appointment.CreatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch appointment"})
+		return
+	}
+
+	prescriptionID := uuid.New().String()
+
+	query := `
+		INSERT INTO prescriptions (id, appointment_id, doctor_id, patient_name, medications, dosage, instructions, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id, appointment_id, doctor_id, patient_name, medications, dosage, instructions, created_at
+	`
+
+	var prescription Prescription
+	err = db.QueryRow(
+		query,
+		prescriptionID,
+		req.AppointmentID,
+		appointment.DoctorID,
+		appointment.PatientName,
+		req.Medications,
+		req.Dosage,
+		req.Instructions,
+		time.Now(),
+	).Scan(
+		&prescription.ID,
+		&prescription.AppointmentID,
+		&prescription.DoctorID,
+		&prescription.PatientName,
+		&prescription.Medications,
+		&prescription.Dosage,
+		&prescription.Instructions,
+		&prescription.CreatedAt,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create prescription"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, prescription)
+}
+
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "healthy",
@@ -340,8 +533,10 @@ func main() {
 		api.GET("/health", healthCheck)
 		api.GET("/doctors", getDoctors)
 		api.GET("/doctors/:id", getDoctorByID)
+		api.GET("/doctors/:doctorId/appointments", getDoctorAppointments)
 		api.POST("/appointments", createAppointment)
 		api.GET("/appointments", getAppointments)
+		api.POST("/prescriptions", createPrescription)
 	}
 
 	port := os.Getenv("PORT")
