@@ -533,9 +533,9 @@ func main() {
 		api.GET("/health", healthCheck)
 		api.GET("/doctors", getDoctors)
 		api.GET("/doctors/:id", getDoctorByID)
-		api.GET("/doctors/:doctorId/appointments", getDoctorAppointments)
 		api.POST("/appointments", createAppointment)
 		api.GET("/appointments", getAppointments)
+		api.GET("/appointments/doctor/:doctorId", getDoctorAppointments)
 		api.POST("/prescriptions", createPrescription)
 	}
 

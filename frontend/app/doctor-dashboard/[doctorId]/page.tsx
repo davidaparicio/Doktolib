@@ -93,7 +93,7 @@ export default function DoctorDashboard() {
     try {
       setLoading(true)
       const params = filter !== 'all' ? `?filter=${filter}` : ''
-      const response = await axios.get(`${API_URL}/api/v1/doctors/${doctorId}/appointments${params}`)
+      const response = await axios.get(`${API_URL}/api/v1/appointments/doctor/${doctorId}${params}`)
       setAppointments(response.data || [])
     } catch (error) {
       console.error('Error fetching appointments:', error)

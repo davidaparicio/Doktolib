@@ -148,9 +148,15 @@ async function seedDatabase(client, force = false) {
     }
 
     if (force && existingCount > 0) {
-      console.log(`🗑️ Force mode: clearing ${existingCount} existing doctors...`);
+      console.log(`🗑️ Force mode: clearing existing data...`);
+      // Clear in correct order due to foreign key constraints
+      await client.query('DELETE FROM prescriptions');
+      console.log('   🗑️ Cleared prescriptions');
+      await client.query('DELETE FROM appointments');
+      console.log('   🗑️ Cleared appointments');
       await client.query('DELETE FROM doctors');
-      console.log('✅ Existing doctors cleared');
+      console.log('   🗑️ Cleared doctors');
+      console.log('✅ Existing data cleared');
     }
 
     // Generate doctors

@@ -126,8 +126,8 @@ function generateAppointments(doctors, count = 200) {
 function generatePrescriptions(appointments, prescriptionRate = 0.6) {
   const prescriptions = [];
   
-  // Only generate prescriptions for completed appointments
-  const completedAppointments = appointments.filter(apt => apt.status === 'completed');
+  // Only generate prescriptions for completed appointments that have an ID (inserted)
+  const completedAppointments = appointments.filter(apt => apt.status === 'completed' && apt.id);
   
   for (const appointment of completedAppointments) {
     // Generate prescription based on rate (60% of completed appointments get prescriptions)
@@ -135,7 +135,7 @@ function generatePrescriptions(appointments, prescriptionRate = 0.6) {
       const template = medicationTemplates[Math.floor(Math.random() * medicationTemplates.length)];
       
       const prescription = {
-        appointment_id: appointment.id, // Will be set when appointment is inserted
+        appointment_id: appointment.id,
         doctor_id: appointment.doctor_id,
         patient_name: appointment.patient_name,
         medications: template.medications,
