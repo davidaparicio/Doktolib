@@ -1,14 +1,24 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -77,7 +87,31 @@ type AppointmentWithPatientAndPrescription struct {
 	Prescription  *Prescription `json:"prescription,omitempty"`
 }
 
+type MedicalFile struct {
+	ID          string    `json:"id"`
+	PatientID   string    `json:"patient_id"`
+	PatientName string    `json:"patient_name"`
+	FileName    string    `json:"file_name"`
+	FileType    string    `json:"file_type"`
+	FileSize    int64     `json:"file_size"`
+	S3Key       string    `json:"s3_key"`
+	S3URL       string    `json:"s3_url,omitempty"`
+	Category    string    `json:"category"`
+	UploadedAt  time.Time `json:"uploaded_at"`
+}
+
+type FileUploadResponse struct {
+	FileID     string `json:"file_id"`
+	FileName   string `json:"file_name"`
+	FileSize   int64  `json:"file_size"`
+	S3Key      string `json:"s3_key"`
+	Category   string `json:"category"`
+	UploadedAt time.Time `json:"uploaded_at"`
+	Message    string `json:"message"`
+}
+
 var db *sql.DB
+var s3Client *s3.Client
 
 func initDB() {
 	var err error
@@ -103,6 +137,38 @@ func initDB() {
 	}
 
 	log.Println("Successfully connected to database")
+}
+
+func initS3() {
+	awsRegion := os.Getenv("AWS_REGION")
+	if awsRegion == "" {
+		awsRegion = "us-east-1"
+	}
+
+	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+
+	if awsAccessKeyID == "" || awsSecretAccessKey == "" {
+		log.Println("Warning: AWS credentials not found. S3 file upload will not work.")
+		return
+	}
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(awsRegion),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			awsAccessKeyID,
+			awsSecretAccessKey,
+			"",
+		)),
+	)
+
+	if err != nil {
+		log.Printf("Warning: Failed to load AWS config: %v", err)
+		return
+	}
+
+	s3Client = s3.NewFromConfig(cfg)
+	log.Printf("Successfully initialized S3 client for region: %s", awsRegion)
 }
 
 // configureSSLMode adds or modifies SSL configuration in the database URL
@@ -142,6 +208,110 @@ func configureSSLMode(databaseURL string) string {
 	// Rebuild the URL
 	u.RawQuery = query.Encode()
 	return u.String()
+}
+
+func validateFileType(fileName string) (string, bool) {
+	ext := strings.ToLower(filepath.Ext(fileName))
+	allowedTypes := map[string]string{
+		".pdf":  "application/pdf",
+		".jpg":  "image/jpeg",
+		".jpeg": "image/jpeg",
+		".png":  "image/png",
+		".gif":  "image/gif",
+		".doc":  "application/msword",
+		".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		".txt":  "text/plain",
+	}
+
+	if contentType, ok := allowedTypes[ext]; ok {
+		return contentType, true
+	}
+	return "", false
+}
+
+func categorizeFile(fileName string) string {
+	name := strings.ToLower(fileName)
+	if strings.Contains(name, "lab") || strings.Contains(name, "test") || strings.Contains(name, "result") {
+		return "lab_results"
+	}
+	if strings.Contains(name, "insurance") || strings.Contains(name, "card") || strings.Contains(name, "coverage") {
+		return "insurance"
+	}
+	if strings.Contains(name, "prescription") || strings.Contains(name, "rx") || strings.Contains(name, "medication") {
+		return "prescription"
+	}
+	if strings.Contains(name, "medical") || strings.Contains(name, "history") || strings.Contains(name, "record") {
+		return "medical_records"
+	}
+	return "other"
+}
+
+func uploadFileToS3(file multipart.File, fileName string, contentType string, patientID string, category string) (string, error) {
+	if s3Client == nil {
+		return "", fmt.Errorf("S3 client not initialized")
+	}
+
+	bucketName := os.Getenv("AWS_S3_BUCKET")
+	if bucketName == "" {
+		return "", fmt.Errorf("AWS_S3_BUCKET environment variable not set")
+	}
+
+	// Create unique S3 key
+	fileID := uuid.New().String()
+	extension := filepath.Ext(fileName)
+	s3Key := fmt.Sprintf("medical-files/%s/%s/%s%s", category, patientID, fileID, extension)
+
+	// Read file content
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %v", err)
+	}
+
+	// Upload to S3
+	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(s3Key),
+		Body:          bytes.NewReader(fileBytes),
+		ContentType:   aws.String(contentType),
+		ContentLength: aws.Int64(int64(len(fileBytes))),
+		ServerSideEncryption: "AES256",
+		Metadata: map[string]string{
+			"patient-id":   patientID,
+			"category":     category,
+			"original-name": fileName,
+		},
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to upload to S3: %v", err)
+	}
+
+	return s3Key, nil
+}
+
+func generatePresignedURL(s3Key string, expiration time.Duration) (string, error) {
+	if s3Client == nil {
+		return "", fmt.Errorf("S3 client not initialized")
+	}
+
+	bucketName := os.Getenv("AWS_S3_BUCKET")
+	if bucketName == "" {
+		return "", fmt.Errorf("AWS_S3_BUCKET environment variable not set")
+	}
+
+	presignClient := s3.NewPresignClient(s3Client)
+	request, err := presignClient.PresignGetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(s3Key),
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = expiration
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned URL: %v", err)
+	}
+
+	return request.URL, nil
 }
 
 // maskPassword hides the password in database URL for logging
@@ -582,6 +752,222 @@ func getDoctorPrescriptions(c *gin.Context) {
 	c.JSON(http.StatusOK, prescriptions)
 }
 
+func uploadMedicalFile(c *gin.Context) {
+	patientID := c.PostForm("patient_id")
+	patientName := c.PostForm("patient_name")
+
+	if patientID == "" || patientName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "patient_id and patient_name are required"})
+		return
+	}
+
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from request"})
+		return
+	}
+	defer file.Close()
+
+	// Validate file size (max 10MB)
+	const maxFileSize = 10 * 1024 * 1024
+	if header.Size > maxFileSize {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File size exceeds 10MB limit"})
+		return
+	}
+
+	// Validate file type
+	contentType, isValid := validateFileType(header.Filename)
+	if !isValid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File type not allowed. Supported: PDF, JPG, PNG, GIF, DOC, DOCX, TXT"})
+		return
+	}
+
+	// Categorize file
+	category := categorizeFile(header.Filename)
+
+	// Upload to S3
+	s3Key, err := uploadFileToS3(file, header.Filename, contentType, patientID, category)
+	if err != nil {
+		log.Printf("S3 upload error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file"})
+		return
+	}
+
+	// Save file metadata to database
+	fileID := uuid.New().String()
+	query := `
+		INSERT INTO medical_files (id, patient_id, patient_name, file_name, file_type, file_size, s3_key, category, uploaded_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, patient_id, patient_name, file_name, file_type, file_size, s3_key, category, uploaded_at
+	`
+
+	var medicalFile MedicalFile
+	err = db.QueryRow(
+		query,
+		fileID,
+		patientID,
+		patientName,
+		header.Filename,
+		contentType,
+		header.Size,
+		s3Key,
+		category,
+		time.Now(),
+	).Scan(
+		&medicalFile.ID,
+		&medicalFile.PatientID,
+		&medicalFile.PatientName,
+		&medicalFile.FileName,
+		&medicalFile.FileType,
+		&medicalFile.FileSize,
+		&medicalFile.S3Key,
+		&medicalFile.Category,
+		&medicalFile.UploadedAt,
+	)
+
+	if err != nil {
+		log.Printf("Database error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file metadata"})
+		return
+	}
+
+	// Generate response
+	response := FileUploadResponse{
+		FileID:     medicalFile.ID,
+		FileName:   medicalFile.FileName,
+		FileSize:   medicalFile.FileSize,
+		S3Key:      medicalFile.S3Key,
+		Category:   medicalFile.Category,
+		UploadedAt: medicalFile.UploadedAt,
+		Message:    "File uploaded successfully",
+	}
+
+	c.JSON(http.StatusCreated, response)
+}
+
+func getMedicalFiles(c *gin.Context) {
+	patientID := c.Query("patient_id")
+	category := c.Query("category")
+
+	query := `
+		SELECT id, patient_id, patient_name, file_name, file_type, file_size, s3_key, category, uploaded_at
+		FROM medical_files
+		WHERE 1=1
+	`
+	args := []interface{}{}
+	argCount := 0
+
+	if patientID != "" {
+		argCount++
+		query += fmt.Sprintf(" AND patient_id = $%d", argCount)
+		args = append(args, patientID)
+	}
+
+	if category != "" {
+		argCount++
+		query += fmt.Sprintf(" AND category = $%d", argCount)
+		args = append(args, category)
+	}
+
+	query += " ORDER BY uploaded_at DESC"
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch medical files"})
+		return
+	}
+	defer rows.Close()
+
+	var files []MedicalFile
+	for rows.Next() {
+		var file MedicalFile
+		err := rows.Scan(
+			&file.ID,
+			&file.PatientID,
+			&file.PatientName,
+			&file.FileName,
+			&file.FileType,
+			&file.FileSize,
+			&file.S3Key,
+			&file.Category,
+			&file.UploadedAt,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan medical file"})
+			return
+		}
+
+		// Generate presigned URL for file access (valid for 1 hour)
+		presignedURL, err := generatePresignedURL(file.S3Key, time.Hour)
+		if err != nil {
+			log.Printf("Warning: Failed to generate presigned URL for %s: %v", file.S3Key, err)
+		} else {
+			file.S3URL = presignedURL
+		}
+
+		files = append(files, file)
+	}
+
+	c.JSON(http.StatusOK, files)
+}
+
+func deleteMedicalFile(c *gin.Context) {
+	fileID := c.Param("fileId")
+
+	// Get file info from database first
+	var file MedicalFile
+	err := db.QueryRow(
+		"SELECT id, patient_id, patient_name, file_name, file_type, file_size, s3_key, category, uploaded_at FROM medical_files WHERE id = $1",
+		fileID,
+	).Scan(
+		&file.ID,
+		&file.PatientID,
+		&file.PatientName,
+		&file.FileName,
+		&file.FileType,
+		&file.FileSize,
+		&file.S3Key,
+		&file.Category,
+		&file.UploadedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch file info"})
+		return
+	}
+
+	// Delete from S3
+	if s3Client != nil {
+		bucketName := os.Getenv("AWS_S3_BUCKET")
+		if bucketName != "" {
+			_, err = s3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(file.S3Key),
+			})
+			if err != nil {
+				log.Printf("Warning: Failed to delete file from S3: %v", err)
+			}
+		}
+	}
+
+	// Delete from database
+	_, err = db.Exec("DELETE FROM medical_files WHERE id = $1", fileID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file from database"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "File deleted successfully",
+		"file_id": fileID,
+	})
+}
+
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "healthy",
@@ -595,6 +981,8 @@ func main() {
 	
 	initDB()
 	defer db.Close()
+
+	initS3()
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
@@ -614,6 +1002,11 @@ func main() {
 		api.GET("/appointments/doctor/:doctorId", getDoctorAppointments)
 		api.POST("/prescriptions", createPrescription)
 		api.GET("/prescriptions/doctor/:doctorId", getDoctorPrescriptions)
+		
+		// File upload endpoints
+		api.POST("/files/upload", uploadMedicalFile)
+		api.GET("/files", getMedicalFiles)
+		api.DELETE("/files/:fileId", deleteMedicalFile)
 	}
 
 	port := os.Getenv("PORT")

@@ -17,11 +17,13 @@ A comprehensive **Doctolib clone** showcasing modern full-stack development and 
 ## 🏗️ Architecture
 
 ### Services
-- **Frontend**: Next.js 14 with TypeScript, Tailwind CSS, and image fallbacks
-- **Backend**: Go with Gin framework, PostgreSQL integration, and health checks
+- **Frontend**: Next.js 14 with TypeScript, Tailwind CSS, and secure file upload
+- **Backend**: Go with Gin framework, PostgreSQL, S3 integration, and health checks
 - **Load Generator**: Node.js service for performance testing and validation
 - **Seed Data**: Automated realistic data generation with 1500+ English doctor profiles
 - **Database**: PostgreSQL 15 with SSL support and connection pooling
+- **File Storage**: AWS S3 with encryption, lifecycle policies, and presigned URLs
+- **Infrastructure**: Terraform for automated S3 bucket provisioning
 - **CI/CD**: GitHub Actions with multi-architecture builds and Qovery deployment
 
 ### Key Features
@@ -29,6 +31,8 @@ A comprehensive **Doctolib clone** showcasing modern full-stack development and 
 - 👨‍⚕️ **Smart Search** - Real-time filtering by specialty, location, and rating
 - 📅 **Appointment Booking** - Complete scheduling system with date/time selection
 - 🏥 **Doctor Profiles** - Detailed pages with experience, ratings, and availability
+- 📁 **Medical File Upload** - Secure S3-based document management with drag & drop
+- 🔒 **HIPAA-Ready Security** - Encrypted file storage with automatic categorization
 - 🔍 **Advanced Filtering** - 40+ specialties and 48 US cities with dropdown menus
 - 📊 **Performance Testing** - Built-in load testing with 4 scenarios (light to stress)
 - 🚀 **Auto-deployment** - Complete CI/CD pipeline with security scanning
@@ -59,6 +63,53 @@ The application uses environment variables for flexible configuration across dif
 - `.env.local`: Local development configuration
 - `.env.docker`: Docker container configuration
 - `.env.production`: Production configuration (create as needed)
+
+## 📁 Medical File Upload System
+
+### Overview
+Doktolib includes a secure medical file upload system built with AWS S3, designed for HIPAA compliance and healthcare data security.
+
+### Features
+- **🔒 Secure Storage**: Files encrypted at rest with AES-256 in AWS S3
+- **📂 Smart Organization**: Automatic categorization (Lab Results, Insurance, Prescriptions, Medical Records)
+- **🖱️ Drag & Drop Upload**: Modern file upload interface with progress tracking
+- **📋 File Management**: Search, filter, download, and delete capabilities
+- **🔗 Presigned URLs**: Secure temporary access links (1-hour expiration)
+- **📏 Size & Type Validation**: 10MB limit with support for PDF, images, and documents
+- **🏷️ Metadata Tracking**: Patient association, upload timestamps, and file categories
+
+### Supported File Types
+- **Documents**: PDF, DOC, DOCX, TXT
+- **Images**: JPG, JPEG, PNG, GIF
+- **Categories**: Lab Results, Insurance Cards, Prescriptions, Medical Records, Other
+
+### File Organization Structure
+```
+s3://doktolib-medical-files/
+├── medical-files/
+│   ├── lab_results/
+│   │   └── patient-123/
+│   │       ├── uuid-1.pdf
+│   │       └── uuid-2.jpg
+│   ├── insurance/
+│   ├── prescription/
+│   ├── medical_records/
+│   └── other/
+```
+
+### Security Implementation
+- **Encryption**: Server-side encryption with AES-256
+- **Access Control**: IAM roles with least-privilege principles
+- **Network Security**: VPC endpoints and CORS configuration
+- **Data Privacy**: Public access blocked, presigned URLs only
+- **Compliance**: HIPAA-ready architecture with audit logging
+
+### AWS Infrastructure
+The system uses Terraform for infrastructure as code:
+- **S3 Bucket**: Encrypted storage with versioning and lifecycle policies
+- **IAM Roles**: Application service roles with S3 permissions
+- **IAM User**: Dedicated user for application access with access keys
+- **Lifecycle Jobs**: Automated S3 bucket provisioning via Qovery
 
 ## 🚀 Quick Start
 

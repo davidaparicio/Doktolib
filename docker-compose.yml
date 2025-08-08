@@ -20,6 +20,11 @@ services:
       - DB_SSL_MODE=disable
       - PORT=8080
       - GIN_MODE=debug
+      # S3 Configuration (optional - for local testing with AWS)
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # - AWS_REGION=${AWS_REGION:-us-east-1}
+      # - AWS_S3_BUCKET=${AWS_S3_BUCKET}
     depends_on:
       - postgres
 
@@ -58,6 +63,19 @@ services:
       - postgres
     profiles:
       - seed
+
+  terraform-s3:
+    build: ./terraform/s3-bucket
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - TF_VAR_bucket_name=${S3_BUCKET_NAME:-doktolib-medical-files-local}
+      - TF_VAR_aws_region=${AWS_REGION:-us-east-1}
+      - TF_VAR_environment=${S3_ENVIRONMENT:-development}
+      - TF_VAR_allowed_origins=${S3_ALLOWED_ORIGINS:-["http://localhost:3000","http://frontend:3000"]}
+    profiles:
+      - terraform
+      - s3-setup
 
 volumes:
   postgres_data:
