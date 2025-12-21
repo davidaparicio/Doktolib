@@ -1,0 +1,156 @@
+# ========================================
+# Qovery Configuration
+# ========================================
+
+# Get these values from: https://console.qovery.com
+# Organization Settings → API → Generate Token
+qovery_access_token = "qov_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Organization Settings → Organization ID
+qovery_organization_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Project → Project ID
+qovery_project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Cluster → Cluster ID (where you want to deploy)
+qovery_cluster_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# ========================================
+# Environment Configuration
+# ========================================
+
+environment_name = "production"
+environment_mode = "PRODUCTION"  # PRODUCTION, STAGING, or DEVELOPMENT
+
+# ========================================
+# Git Repository Configuration
+# ========================================
+
+git_repository_url = "https://github.com/evoxmusic/qovery-doktolib"
+git_branch         = "main"
+auto_deploy_enabled = true  # Auto-deploy on git push
+
+# ========================================
+# Database Configuration
+# ========================================
+
+# Use Qovery-managed containerized PostgreSQL
+use_managed_database = false
+
+# If using RDS Aurora (from terraform/rds-aurora), set use_managed_database = true
+# and configure these values:
+# use_managed_database    = true
+# managed_database_host   = "doktolib-aurora.cluster-xxxxx.us-east-1.rds.amazonaws.com"
+# managed_database_port   = "5432"
+# managed_database_name   = "doktolib"
+# managed_database_user   = "postgres"
+# managed_database_password = "your-secure-password"
+
+# ========================================
+# Backend Configuration
+# ========================================
+
+backend_cpu           = 500   # millicores (500 = 0.5 CPU)
+backend_memory        = 512   # MB
+backend_min_instances = 1
+backend_max_instances = 3
+
+# CORS configuration - restrict in production
+cors_allowed_origins = "*"  # Or: "https://app.doktolib.com,https://doktolib.com"
+
+# JWT secret for authentication (generate a secure random string)
+jwt_secret = "change-me-to-a-secure-random-string"
+
+# ========================================
+# Frontend Configuration
+# ========================================
+
+frontend_cpu           = 500   # millicores
+frontend_memory        = 512   # MB
+frontend_min_instances = 1
+frontend_max_instances = 5
+
+# Visio health check URL (from Lambda deployment)
+visio_health_url = "https://abc123xyz.lambda-url.us-east-1.on.aws/health"
+
+# ========================================
+# Seed Data Job Configuration
+# ========================================
+
+enable_seed_job  = true
+seed_num_doctors = "100"   # Number of doctors to generate
+seed_force       = "false"  # Force seed even if data exists
+
+# ========================================
+# Load Generator Configuration
+# ========================================
+
+enable_load_generator = true   # Enabled by default (set min_instances=0 to keep stopped)
+load_scenario         = "light"  # light, normal, heavy, stress
+load_duration         = "5"      # minutes
+
+# ========================================
+# EXAMPLE CONFIGURATIONS
+# ========================================
+
+# Development Environment
+# -----------------------
+# environment_name        = "dev"
+# environment_mode        = "DEVELOPMENT"
+# backend_cpu             = 250
+# backend_memory          = 256
+# backend_min_instances   = 1
+# backend_max_instances   = 1
+# frontend_cpu            = 250
+# frontend_memory         = 256
+# frontend_min_instances  = 1
+# frontend_max_instances  = 1
+# enable_seed_job         = true
+# enable_load_generator   = false
+
+# Staging Environment
+# -------------------
+# environment_name        = "staging"
+# environment_mode        = "STAGING"
+# backend_cpu             = 500
+# backend_memory          = 512
+# backend_min_instances   = 1
+# backend_max_instances   = 2
+# frontend_cpu            = 500
+# frontend_memory         = 512
+# frontend_min_instances  = 1
+# frontend_max_instances  = 3
+
+# Production Environment (High Traffic)
+# --------------------------------------
+# environment_name        = "production"
+# environment_mode        = "PRODUCTION"
+# use_managed_database    = true  # Use RDS Aurora
+# backend_cpu             = 1000
+# backend_memory          = 1024
+# backend_min_instances   = 2
+# backend_max_instances   = 10
+# frontend_cpu            = 1000
+# frontend_memory         = 1024
+# frontend_min_instances  = 2
+# frontend_max_instances  = 20
+
+# ========================================
+# Terraform Services (Enabled by default)
+# ========================================
+
+# Terraform services use Kubernetes backend for state storage (no S3 bucket needed)
+# AWS credentials are automatically injected by Qovery (use_cluster_credentials = true)
+
+enable_rds_aurora      = true  # RDS Aurora Serverless
+enable_lambda_visio    = true  # Lambda Visio Health Service
+enable_cloudflare_cdn  = true  # Cloudflare CDN - requires cloudflare_domain_name
+enable_s3_bucket       = true  # S3 Bucket for medical files storage
+
+# cloudflare_domain_name = "doktolib.com"  # REQUIRED for Cloudflare CDN - uncomment and set your domain
+
+# Configuration for each terraform service is managed in their respective directories:
+# - RDS Aurora: terraform/rds-aurora/
+# - Lambda Visio: terraform/visio-service/
+# - Cloudflare CDN: terraform/cloudflare-cdn/
+# - S3 Bucket: terraform/s3-bucket/
