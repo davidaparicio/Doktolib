@@ -146,7 +146,7 @@ resource "qovery_database" "postgres" {
   environment_id = qovery_environment.doktolib.id
   name           = "postgres"
   type           = "POSTGRESQL"
-  version        = "15"
+  version        = "17.6"
   mode           = "CONTAINER"  # Use MANAGED for RDS
   storage        = 10           # GB
   accessibility  = "PRIVATE"
