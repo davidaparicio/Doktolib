@@ -520,7 +520,7 @@ resource "qovery_terraform_service" "rds_aurora" {
     root_path = "/terraform/rds-aurora"
   }
 
-  auto_deploy = false
+  auto_deploy = true
 
   # Ensure this deploys after env-id-extractor job completes
   depends_on = [qovery_job.env_id_extractor]
@@ -593,7 +593,7 @@ resource "qovery_terraform_service" "lambda_visio" {
     root_path = "/terraform/visio-service"
   }
 
-  auto_deploy = false
+  auto_deploy = true
 
   # Ensure this deploys after env-id-extractor job completes
   depends_on = [qovery_job.env_id_extractor]
@@ -651,7 +651,7 @@ resource "qovery_terraform_service" "cloudflare_cdn" {
     root_path = "/terraform/cloudflare-cdn"
   }
 
-  auto_deploy = false
+  auto_deploy = true
 
   # Terraform engine configuration (required)
   engine = "TERRAFORM"
@@ -692,7 +692,7 @@ resource "qovery_terraform_service" "s3_bucket" {
     root_path = "/terraform/s3-bucket"
   }
 
-  auto_deploy = false
+  auto_deploy = true
 
   # Ensure this deploys after env-id-extractor job completes
   depends_on = [qovery_job.env_id_extractor]
