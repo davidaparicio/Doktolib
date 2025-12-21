@@ -14,6 +14,16 @@ provider "qovery" {
 }
 
 # ========================================
+# Local Values
+# ========================================
+
+locals {
+  # Compute environment ID prefix once for use in AWS resource names
+  # This ensures unique resource names per environment (important for cloning)
+  env_id_prefix = substr(qovery_environment.doktolib.id, 0, 8)
+}
+
+# ========================================
 # Environment
 # ========================================
 
@@ -22,14 +32,6 @@ resource "qovery_environment" "doktolib" {
   cluster_id = var.qovery_cluster_id
   name       = var.environment_name
   mode       = var.environment_mode # PRODUCTION, STAGING, DEVELOPMENT
-
-  # Environment-level variables accessible to all services
-  environment_variables = [
-    {
-      key   = "FIRST_ENVIRONMENT_ID_DIGITS"
-      value = substr(qovery_environment.doktolib.id, 0, 8)
-    }
-  ]
 }
 
 # ========================================
@@ -482,7 +484,7 @@ resource "qovery_terraform_service" "rds_aurora" {
     },
     {
       key       = "cluster_name"
-      value     = "qovery-{{FIRST_ENVIRONMENT_ID_DIGITS}}-doktolib-aurora"
+      value     = "qovery-${local.env_id_prefix}-doktolib-aurora"
       is_secret = false
     }
   ]
@@ -537,7 +539,7 @@ resource "qovery_terraform_service" "lambda_visio" {
     },
     {
       key       = "function_name"
-      value     = "qovery-{{FIRST_ENVIRONMENT_ID_DIGITS}}-doktolib-visio-health"
+      value     = "qovery-${local.env_id_prefix}-doktolib-visio-health"
       is_secret = false
     }
   ]
@@ -630,7 +632,7 @@ resource "qovery_terraform_service" "s3_bucket" {
     },
     {
       key       = "bucket_name"
-      value     = "qovery-{{FIRST_ENVIRONMENT_ID_DIGITS}}-doktolib-medical-files"
+      value     = "qovery-${local.env_id_prefix}-doktolib-medical-files"
       is_secret = false
     }
   ]
