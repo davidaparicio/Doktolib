@@ -61,6 +61,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "doktolib_files_lifecycle" {
     id     = "delete_old_versions"
     status = "Enabled"
 
+    # Filter to apply rule to all objects
+    filter {}
+
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
@@ -69,6 +72,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "doktolib_files_lifecycle" {
   rule {
     id     = "delete_incomplete_uploads"
     status = "Enabled"
+
+    # Filter to apply rule to all objects
+    filter {}
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 1
@@ -145,14 +151,16 @@ resource "aws_iam_role" "doktolib_app_role" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
           Service = "ec2.amazonaws.com"
         }
-      },
+      }
+    ],
+    var.app_role_arn != "" ? [
       {
         Action = "sts:AssumeRole"
         Effect = "Allow"
@@ -160,7 +168,7 @@ resource "aws_iam_role" "doktolib_app_role" {
           AWS = var.app_role_arn
         }
       }
-    ]
+    ] : [])
   })
 }
 
