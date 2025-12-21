@@ -28,11 +28,19 @@ resource "qovery_environment" "doktolib" {
 # Deployment Stages
 # ========================================
 
+# Stage 0: Initialization (lifecycle jobs)
+resource "qovery_deployment_stage" "initialization" {
+  environment_id = qovery_environment.doktolib.id
+  name           = "Initialization"
+  description    = "Lifecycle jobs and environment setup"
+}
+
 # Stage 1: Database
 resource "qovery_deployment_stage" "database" {
   environment_id = qovery_environment.doktolib.id
   name           = "Database"
   description    = "PostgreSQL database deployment"
+  is_after       = qovery_deployment_stage.initialization.id
 }
 
 # Stage 2: Backend API
@@ -101,8 +109,8 @@ resource "qovery_job" "env_id_extractor" {
   cpu    = 100   # millicores
   memory = 128   # MB
 
-  # Deployment stage - runs in database stage (first stage)
-  deployment_stage_id = qovery_deployment_stage.database.id
+  # Deployment stage - runs in initialization stage (very first stage)
+  deployment_stage_id = qovery_deployment_stage.initialization.id
 
   # Maximum duration (5 minutes - should complete in seconds)
   max_duration_seconds = 300

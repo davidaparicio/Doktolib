@@ -115,10 +115,11 @@ output "load_generator_console_url" {
 output "deployment_stages" {
   description = "Deployment stages"
   value = {
-    database = qovery_deployment_stage.database.id
-    backend  = qovery_deployment_stage.backend.id
-    frontend = qovery_deployment_stage.frontend.id
-    jobs     = qovery_deployment_stage.jobs.id
+    initialization = qovery_deployment_stage.initialization.id
+    database       = qovery_deployment_stage.database.id
+    backend        = qovery_deployment_stage.backend.id
+    frontend       = qovery_deployment_stage.frontend.id
+    jobs           = qovery_deployment_stage.jobs.id
   }
 }
 
