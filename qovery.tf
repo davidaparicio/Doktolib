@@ -22,6 +22,14 @@ resource "qovery_environment" "doktolib" {
   cluster_id = var.qovery_cluster_id
   name       = var.environment_name
   mode       = var.environment_mode # PRODUCTION, STAGING, DEVELOPMENT
+
+  # Environment-level variables accessible to all services
+  environment_variables = [
+    {
+      key   = "FIRST_ENVIRONMENT_ID_DIGITS"
+      value = substr(qovery_environment.doktolib.id, 0, 8)
+    }
+  ]
 }
 
 # ========================================
@@ -474,7 +482,7 @@ resource "qovery_terraform_service" "rds_aurora" {
     },
     {
       key       = "cluster_name"
-      value     = "qovery-${substr(qovery_environment.doktolib.id, 0, 8)}-doktolib-aurora"
+      value     = "qovery-{{FIRST_ENVIRONMENT_ID_DIGITS}}-doktolib-aurora"
       is_secret = false
     }
   ]
@@ -529,7 +537,7 @@ resource "qovery_terraform_service" "lambda_visio" {
     },
     {
       key       = "function_name"
-      value     = "qovery-${substr(qovery_environment.doktolib.id, 0, 8)}-doktolib-visio-health"
+      value     = "qovery-{{FIRST_ENVIRONMENT_ID_DIGITS}}-doktolib-visio-health"
       is_secret = false
     }
   ]
@@ -622,7 +630,7 @@ resource "qovery_terraform_service" "s3_bucket" {
     },
     {
       key       = "bucket_name"
-      value     = "qovery-${substr(qovery_environment.doktolib.id, 0, 8)}-doktolib-medical-files"
+      value     = "qovery-{{FIRST_ENVIRONMENT_ID_DIGITS}}-doktolib-medical-files"
       is_secret = false
     }
   ]
