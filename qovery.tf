@@ -483,6 +483,21 @@ resource "qovery_terraform_service" "rds_aurora" {
       is_secret = false
     },
     {
+      key       = "use_default_vpc"
+      value     = "false"
+      is_secret = false
+    },
+    {
+      key       = "vpc_id"
+      value     = "{{QOVERY_KUBERNETES_CLUSTER_VPC_ID}}"
+      is_secret = false
+    },
+    {
+      key       = "publicly_accessible"
+      value     = "false"
+      is_secret = false
+    },
+    {
       key       = "cluster_name"
       value     = "qovery-${local.env_id_prefix}-doktolib-aurora"
       is_secret = false
