@@ -1,0 +1,75 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Lambda Configuration
+function_name  = "doktolib-visio-health"
+environment    = "production"
+
+# Lambda Performance
+lambda_timeout = 10   # seconds
+lambda_memory  = 128  # MB (minimum, adequate for this simple service)
+
+# Logging
+log_retention_days = 7  # CloudWatch logs retention
+
+# CORS Configuration
+# Allow all origins by default, restrict in production if needed
+cors_allow_origins = ["*"]
+# For production, restrict to your frontend domains:
+# cors_allow_origins = [
+#   "https://app.doktolib.com",
+#   "https://doktolib.com",
+#   "http://localhost:3000"
+# ]
+
+# Monitoring
+error_threshold = 10  # Number of errors before triggering CloudWatch alarm
+
+# Tags
+tags = {
+  Project     = "Doktolib"
+  Service     = "Visio-Conference"
+  Environment = "Production"
+  ManagedBy   = "Terraform"
+  Component   = "Health-Check"
+}
+
+# ========================================
+# ENVIRONMENT-SPECIFIC CONFIGURATIONS
+# ========================================
+
+# Development
+# -----------
+# function_name  = "doktolib-visio-health-dev"
+# environment    = "development"
+# lambda_timeout = 5
+# lambda_memory  = 128
+# log_retention_days = 3
+# Estimated cost: ~$0.20/month
+
+# Staging
+# -------
+# function_name  = "doktolib-visio-health-staging"
+# environment    = "staging"
+# lambda_timeout = 10
+# lambda_memory  = 128
+# log_retention_days = 7
+# Estimated cost: ~$0.50/month
+
+# Production
+# ----------
+# function_name  = "doktolib-visio-health-prod"
+# environment    = "production"
+# lambda_timeout = 10
+# lambda_memory  = 256
+# log_retention_days = 14
+# Estimated cost: ~$1-2/month (depending on traffic)
+
+# High-Traffic Production
+# -----------------------
+# function_name  = "doktolib-visio-health-prod"
+# environment    = "production"
+# lambda_timeout = 30
+# lambda_memory  = 512
+# log_retention_days = 30
+# Estimated cost: ~$5-10/month (high traffic)

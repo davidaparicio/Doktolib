@@ -1,0 +1,69 @@
+# Cloudflare API Token
+# Create at: https://dash.cloudflare.com/profile/api-tokens
+# Required permissions: Zone:Edit, Zone Settings:Edit
+cloudflare_api_token = "your-cloudflare-api-token-here"
+
+# Domain Configuration
+domain_name        = "doktolib.com"        # Your root domain
+frontend_subdomain = "app"                 # Subdomain for frontend (app.doktolib.com)
+# Use "@" for root domain: frontend_subdomain = "@"
+
+# Origin Configuration
+# This is the URL where your frontend is actually hosted (e.g., from Qovery)
+origin_url = "doktolib-frontend-xxxxx.qovery.io"
+
+# Optional Features
+create_www_redirect  = false  # Create www.app.doktolib.com redirect
+create_admin_bypass  = false  # Bypass cache for /admin/* paths
+create_api_bypass    = true   # Bypass cache for /api/* paths (recommended)
+create_health_check  = true   # Enable Cloudflare health monitoring
+
+# Security & Performance
+rate_limit_requests_per_5min = 100    # Max requests per IP per 5 minutes
+security_level               = "medium" # off, low, medium, high, under_attack
+
+# Deployment
+enable_cache_purge_on_deploy = false  # Purge cache when running terraform apply
+
+# Tags
+tags = {
+  Project    = "Doktolib"
+  Component  = "Frontend-CDN"
+  Environment = "Production"
+  ManagedBy  = "Terraform"
+}
+
+# ========================================
+# EXAMPLE CONFIGURATIONS
+# ========================================
+
+# Development Environment
+# -----------------------
+# domain_name        = "dev.doktolib.com"
+# frontend_subdomain = "app"
+# origin_url         = "doktolib-frontend-dev-xxxxx.qovery.io"
+# security_level     = "low"
+# rate_limit_requests_per_5min = 300
+
+# Staging Environment
+# -------------------
+# domain_name        = "staging.doktolib.com"
+# frontend_subdomain = "app"
+# origin_url         = "doktolib-frontend-staging-xxxxx.qovery.io"
+# security_level     = "medium"
+
+# Production Environment
+# ----------------------
+# domain_name        = "doktolib.com"
+# frontend_subdomain = "app"  # or "@" for root domain
+# origin_url         = "doktolib-frontend-prod-xxxxx.qovery.io"
+# security_level     = "high"
+# create_health_check = true
+# rate_limit_requests_per_5min = 100
+
+# Root Domain Configuration
+# -------------------------
+# domain_name        = "doktolib.com"
+# frontend_subdomain = "@"    # Use root domain (doktolib.com instead of app.doktolib.com)
+# origin_url         = "doktolib-frontend-xxxxx.qovery.io"
+# create_www_redirect = true  # Redirect www.doktolib.com to doktolib.com
