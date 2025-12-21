@@ -522,6 +522,9 @@ resource "qovery_terraform_service" "rds_aurora" {
 
   auto_deploy = false
 
+  # Ensure this deploys after env-id-extractor job completes
+  depends_on = [qovery_job.env_id_extractor]
+
   # Terraform engine configuration (required)
   engine = "TERRAFORM"
   engine_version = {
@@ -592,6 +595,9 @@ resource "qovery_terraform_service" "lambda_visio" {
 
   auto_deploy = false
 
+  # Ensure this deploys after env-id-extractor job completes
+  depends_on = [qovery_job.env_id_extractor]
+
   # Terraform engine configuration (required)
   engine = "TERRAFORM"
   engine_version = {
@@ -658,6 +664,9 @@ resource "qovery_terraform_service" "cloudflare_cdn" {
     kubernetes = {}
   }
 
+  # Ensure this deploys after env-id-extractor job completes
+  depends_on = [qovery_job.env_id_extractor]
+
   # Job resources (required)
   job_resources = {
     cpu    = 500
@@ -684,6 +693,9 @@ resource "qovery_terraform_service" "s3_bucket" {
   }
 
   auto_deploy = false
+
+  # Ensure this deploys after env-id-extractor job completes
+  depends_on = [qovery_job.env_id_extractor]
 
   # Terraform engine configuration (required)
   engine = "TERRAFORM"
