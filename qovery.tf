@@ -14,16 +14,6 @@ provider "qovery" {
 }
 
 # ========================================
-# Local Values
-# ========================================
-
-locals {
-  # Compute environment ID prefix once for use in AWS resource names
-  # This ensures unique resource names per environment (important for cloning)
-  env_id_prefix = substr(qovery_environment.doktolib.id, 0, 8)
-}
-
-# ========================================
 # Environment
 # ========================================
 
@@ -67,6 +57,75 @@ resource "qovery_deployment_stage" "jobs" {
   name           = "Jobs"
   description    = "Background jobs and data seeding"
   is_after       = qovery_deployment_stage.backend.id
+}
+
+# ========================================
+# Lifecycle Jobs
+# ========================================
+
+# Environment ID Extractor - Runs first to extract environment ID prefix
+resource "qovery_job" "env_id_extractor" {
+  environment_id = qovery_environment.doktolib.id
+  name           = "env-id-extractor"
+  icon_uri       = "app://qovery-console/shell"
+
+  # Git repository configuration
+  source = {
+    docker = {
+      git_repository = {
+        url       = var.git_repository_url
+        branch    = var.git_branch
+        root_path = "/lifecycle-jobs/environment-id-extractor"
+      }
+      dockerfile_path = "Dockerfile"
+    }
+  }
+
+  # Lifecycle job - runs on environment start
+  schedule = {
+    on_start = {
+      enabled   = true
+      arguments = []
+    }
+    on_stop = {
+      enabled   = false
+      arguments = []
+    }
+    on_delete = {
+      enabled   = false
+      arguments = []
+    }
+  }
+
+  # Resource configuration
+  cpu    = 100   # millicores
+  memory = 128   # MB
+
+  # Deployment stage - runs in database stage (first stage)
+  deployment_stage_id = qovery_deployment_stage.database.id
+
+  # Maximum duration (5 minutes - should complete in seconds)
+  max_duration_seconds = 300
+  max_nb_restart       = 0  # Don't restart on failure
+
+  # Auto-deploy with environment
+  auto_deploy = true
+
+  # Health checks (required for jobs)
+  healthchecks = {
+    liveness_probe = {
+      type = {
+        exec = {
+          command = ["echo", "ok"]
+        }
+      }
+      initial_delay_seconds = 5
+      period_seconds        = 10
+      timeout_seconds       = 5
+      success_threshold     = 1
+      failure_threshold     = 3
+    }
+  }
 }
 
 # ========================================
@@ -499,7 +558,7 @@ resource "qovery_terraform_service" "rds_aurora" {
     },
     {
       key       = "cluster_name"
-      value     = "qovery-${local.env_id_prefix}-doktolib-aurora"
+      value     = "qovery-{{ENVIRONMENT_ID_FIRST_DIGITS}}-doktolib-aurora"
       is_secret = false
     }
   ]
@@ -554,7 +613,7 @@ resource "qovery_terraform_service" "lambda_visio" {
     },
     {
       key       = "function_name"
-      value     = "qovery-${local.env_id_prefix}-doktolib-visio-health"
+      value     = "qovery-{{ENVIRONMENT_ID_FIRST_DIGITS}}-doktolib-visio-health"
       is_secret = false
     }
   ]
@@ -647,7 +706,7 @@ resource "qovery_terraform_service" "s3_bucket" {
     },
     {
       key       = "bucket_name"
-      value     = "qovery-${local.env_id_prefix}-doktolib-medical-files"
+      value     = "qovery-{{ENVIRONMENT_ID_FIRST_DIGITS}}-doktolib-medical-files"
       is_secret = false
     }
   ]
