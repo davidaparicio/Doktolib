@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "cluster_name" {
   description = "Name of the Aurora Serverless cluster"
   type        = string
-  default     = "doktolib-aurora"
+  default     = "qovery-doktolib-aurora"
 }
 
 variable "database_name" {

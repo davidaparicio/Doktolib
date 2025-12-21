@@ -471,6 +471,11 @@ resource "qovery_terraform_service" "rds_aurora" {
       key       = "aws_region"
       value     = "{{QOVERY_CLOUD_PROVIDER_REGION}}"
       is_secret = false
+    },
+    {
+      key       = "cluster_name"
+      value     = "qovery-${substr(qovery_environment.doktolib.id, 0, 8)}-doktolib-aurora"
+      is_secret = false
     }
   ]
 
@@ -520,6 +525,11 @@ resource "qovery_terraform_service" "lambda_visio" {
     {
       key       = "aws_region"
       value     = "{{QOVERY_CLOUD_PROVIDER_REGION}}"
+      is_secret = false
+    },
+    {
+      key       = "function_name"
+      value     = "qovery-${substr(qovery_environment.doktolib.id, 0, 8)}-doktolib-visio-health"
       is_secret = false
     }
   ]
@@ -608,6 +618,11 @@ resource "qovery_terraform_service" "s3_bucket" {
     {
       key       = "aws_region"
       value     = "{{QOVERY_CLOUD_PROVIDER_REGION}}"
+      is_secret = false
+    },
+    {
+      key       = "bucket_name"
+      value     = "qovery-${substr(qovery_environment.doktolib.id, 0, 8)}-doktolib-medical-files"
       is_secret = false
     }
   ]

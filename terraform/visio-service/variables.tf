@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "function_name" {
   description = "Name of the Lambda function"
   type        = string
-  default     = "doktolib-visio-health"
+  default     = "qovery-doktolib-visio-health"
 }
 
 variable "environment" {
