@@ -15,6 +15,8 @@ Parameters:
 Resources:
   DoktolibIAMRole:
     Type: AWS::IAM::Role
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       RoleName: !Sub 'qovery-doktolib-${EnvironmentName}-role'
       Description: 'IAM role for Qovery Doktolib terraform services (RDS Aurora, Lambda, S3)'
@@ -46,6 +48,8 @@ Resources:
   # RDS Aurora Policies
   DoktolibRDSPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-rds-policy'
       Description: 'Permissions for RDS Aurora Serverless management'
@@ -76,6 +80,8 @@ Resources:
   # Lambda Policies
   DoktolibLambdaPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-lambda-policy'
       Description: 'Permissions for Lambda function management'
@@ -99,6 +105,8 @@ Resources:
   # S3 Policies
   DoktolibS3Policy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-s3-policy'
       Description: 'Permissions for S3 bucket management'
@@ -114,6 +122,8 @@ Resources:
   # Secrets Manager Policies
   DoktolibSecretsManagerPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-secrets-policy'
       Description: 'Permissions for AWS Secrets Manager'
@@ -129,6 +139,8 @@ Resources:
   # CloudWatch Policies
   DoktolibCloudWatchPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-cloudwatch-policy'
       Description: 'Permissions for CloudWatch Logs and Alarms'
@@ -149,6 +161,8 @@ Resources:
   # IAM Policies (for Lambda role creation, etc.)
   DoktolibIAMPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-iam-policy'
       Description: 'Permissions for IAM role and policy management'
