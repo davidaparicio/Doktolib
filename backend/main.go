@@ -175,7 +175,7 @@ func initS3() {
 func configureSSLMode(databaseURL string) string {
 	sslMode := os.Getenv("DB_SSL_MODE")
 	if sslMode == "" {
-		sslMode = "disable" // Default to disable for compatibility
+		sslMode = "require" // Default to require for RDS Aurora and managed databases
 	}
 
 	// Parse the URL
