@@ -626,9 +626,6 @@ resource "qovery_terraform_service" "lambda_visio" {
     kubernetes = {}
   }
 
-  # Use cluster AWS credentials automatically
-  use_cluster_credentials = true
-
   # Job resources (required)
   job_resources = {
     cpu    = 500
@@ -641,6 +638,16 @@ resource "qovery_terraform_service" "lambda_visio" {
       key       = "aws_region"
       value     = "{{QOVERY_CLOUD_PROVIDER_REGION}}"
       is_secret = false
+    },
+    {
+      key       = "aws_access_key_id"
+      value     = "{{AWS_ACCESS_KEY_ID}}"
+      is_secret = true
+    },
+    {
+      key       = "aws_secret_access_key"
+      value     = "{{AWS_SECRET_ACCESS_KEY}}"
+      is_secret = true
     },
     {
       key       = "function_name"
