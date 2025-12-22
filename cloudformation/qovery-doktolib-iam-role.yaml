@@ -191,6 +191,13 @@ Resources:
               - 'iam:ListRolePolicies'
               - 'iam:ListAttachedRolePolicies'
               - 'iam:PassRole'
+              - 'iam:CreateInstanceProfile'
+              - 'iam:DeleteInstanceProfile'
+              - 'iam:GetInstanceProfile'
+              - 'iam:ListInstanceProfiles'
+              - 'iam:ListInstanceProfilesForRole'
+              - 'iam:AddRoleToInstanceProfile'
+              - 'iam:RemoveRoleFromInstanceProfile'
             Resource: '*'
           - Sid: IAMPolicyManagement
             Effect: Allow
