@@ -128,8 +128,9 @@ variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
   default = {
-    Project     = "Doktolib"
-    Environment = "Production"
-    ManagedBy   = "Terraform"
+    Project           = "Doktolib"
+    QoveryProject     = "{{QOVERY_PROJECT_ID}}"
+    QoveryEnvironment = "{{QOVERY_ENVIRONMENT_ID}}"
+    ManagedBy         = "Terraform"
   }
 }

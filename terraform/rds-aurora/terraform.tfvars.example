@@ -51,10 +51,11 @@ secret_recovery_days = 7  # Days to retain deleted secrets (0-30)
 
 # Tags
 tags = {
-  Project     = "Doktolib"
-  Environment = "Production"
-  ManagedBy   = "Terraform"
-  CostCenter  = "Engineering"
+  Project           = "Doktolib"
+  QoveryProject     = "{{QOVERY_PROJECT_ID}}"
+  QoveryEnvironment = "{{QOVERY_ENVIRONMENT_ID}}"
+  ManagedBy         = "Terraform"
+  CostCenter        = "Engineering"
 }
 
 # ========================================
