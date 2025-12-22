@@ -35,12 +35,20 @@ resource "qovery_deployment_stage" "initialization" {
   description    = "Lifecycle jobs and environment setup"
 }
 
-# Stage 1: Database
+# Stage 1: Infrastructure (terraform services)
+resource "qovery_deployment_stage" "infrastructure" {
+  environment_id = qovery_environment.doktolib.id
+  name           = "Infrastructure"
+  description    = "AWS infrastructure provisioning (RDS, Lambda, S3)"
+  is_after       = qovery_deployment_stage.initialization.id
+}
+
+# Stage 2: Database
 resource "qovery_deployment_stage" "database" {
   environment_id = qovery_environment.doktolib.id
   name           = "Database"
   description    = "PostgreSQL database deployment"
-  is_after       = qovery_deployment_stage.initialization.id
+  is_after       = qovery_deployment_stage.infrastructure.id
 }
 
 # Stage 2: Backend API
@@ -510,7 +518,7 @@ resource "qovery_terraform_service" "rds_aurora" {
   count = var.enable_rds_aurora ? 1 : 0
 
   environment_id      = qovery_environment.doktolib.id
-  deployment_stage_id = qovery_deployment_stage.initialization.id
+  deployment_stage_id = qovery_deployment_stage.infrastructure.id
   name                = "rds-aurora"
   description         = "AWS RDS Aurora Serverless v2 - PostgreSQL database with auto-scaling"
   icon_uri            = "app://qovery-console/postgresql"
@@ -601,7 +609,7 @@ resource "qovery_terraform_service" "lambda_visio" {
   count = var.enable_lambda_visio ? 1 : 0
 
   environment_id      = qovery_environment.doktolib.id
-  deployment_stage_id = qovery_deployment_stage.initialization.id
+  deployment_stage_id = qovery_deployment_stage.infrastructure.id
   name                = "lambda-visio"
   description         = "AWS Lambda - Visio conference health check service"
   icon_uri            = "app://qovery-console/lambda"
@@ -677,7 +685,7 @@ resource "qovery_terraform_service" "cloudflare_cdn" {
   count = var.enable_cloudflare_cdn && var.cloudflare_domain_name != "" ? 1 : 0
 
   environment_id      = qovery_environment.doktolib.id
-  deployment_stage_id = qovery_deployment_stage.initialization.id
+  deployment_stage_id = qovery_deployment_stage.infrastructure.id
   name                = "cloudflare-cdn"
   description         = "Cloudflare CDN - Frontend edge caching and DDoS protection"
   icon_uri            = "app://qovery-console/cloudflare"
@@ -733,7 +741,7 @@ resource "qovery_terraform_service" "s3_bucket" {
   count = var.enable_s3_bucket ? 1 : 0
 
   environment_id      = qovery_environment.doktolib.id
-  deployment_stage_id = qovery_deployment_stage.initialization.id
+  deployment_stage_id = qovery_deployment_stage.infrastructure.id
   name                = "s3-bucket"
   description         = "AWS S3 - Medical files storage with encryption and versioning"
   icon_uri            = "app://qovery-console/s3"
