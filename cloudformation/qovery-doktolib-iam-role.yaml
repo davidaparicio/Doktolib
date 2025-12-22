@@ -221,6 +221,9 @@ Resources:
               - 'iam:DeleteUserPolicy'
               - 'iam:GetUserPolicy'
               - 'iam:ListUserPolicies'
+              - 'iam:ListGroupsForUser'
+              - 'iam:RemoveUserFromGroup'
+              - 'iam:AddUserToGroup'
             Resource: '*'
 
 # Outputs section commented out for initial import operation
