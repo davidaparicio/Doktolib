@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 function getSSLConfig() {
-  const sslMode = process.env.DB_SSL_MODE || 'disable';
-  
+  const sslMode = process.env.DB_SSL_MODE || 'require';
+
   console.log(`🔒 SSL Mode: ${sslMode}`);
   
   switch (sslMode.toLowerCase()) {
