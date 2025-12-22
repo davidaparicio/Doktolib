@@ -102,7 +102,7 @@ resource "aws_lambda_function_url" "visio_health_url" {
   cors {
     allow_credentials = false
     allow_origins     = var.cors_allow_origins
-    allow_methods     = ["GET", "OPTIONS"]
+    allow_methods     = ["GET"]
     allow_headers     = ["content-type", "x-requested-with"]
     max_age           = 86400
   }
