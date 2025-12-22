@@ -219,32 +219,35 @@ Resources:
               - 'iam:ListUserPolicies'
             Resource: '*'
 
-Outputs:
-  RoleArn:
-    Description: 'ARN of the IAM role to use in Qovery environment variable AWS_ASSUME_ROLE_ARN'
-    Value: !GetAtt DoktolibIAMRole.Arn
-    Export:
-      Name: !Sub '${AWS::StackName}-RoleArn'
-
-  RoleName:
-    Description: 'Name of the IAM role'
-    Value: !Ref DoktolibIAMRole
-    Export:
-      Name: !Sub '${AWS::StackName}-RoleName'
-
-  ExternalId:
-    Description: 'External ID to use when assuming the role'
-    Value: !Sub 'qovery-doktolib-${EnvironmentName}'
-    Export:
-      Name: !Sub '${AWS::StackName}-ExternalId'
-
-  DeploymentInstructions:
-    Description: 'Instructions for using this role with Qovery'
-    Value: !Sub |
-      1. Add the following environment variables in your Qovery environment:
-         - AWS_ASSUME_ROLE_ARN = ${DoktolibIAMRole.Arn}
-         - AWS_ASSUME_ROLE_EXTERNAL_ID = qovery-doktolib-${EnvironmentName}
-
-      2. Deploy your Qovery terraform services
-
-      3. The services will automatically assume this role for AWS operations
+# Outputs section commented out for initial import operation
+# After successful import, update the stack to add outputs back
+#
+# Outputs:
+#   RoleArn:
+#     Description: 'ARN of the IAM role to use in Qovery environment variable AWS_ASSUME_ROLE_ARN'
+#     Value: !GetAtt DoktolibIAMRole.Arn
+#     Export:
+#       Name: !Sub '${AWS::StackName}-RoleArn'
+#
+#   RoleName:
+#     Description: 'Name of the IAM role'
+#     Value: !Ref DoktolibIAMRole
+#     Export:
+#       Name: !Sub '${AWS::StackName}-RoleName'
+#
+#   ExternalId:
+#     Description: 'External ID to use when assuming the role'
+#     Value: !Sub 'qovery-doktolib-${EnvironmentName}'
+#     Export:
+#       Name: !Sub '${AWS::StackName}-ExternalId'
+#
+#   DeploymentInstructions:
+#     Description: 'Instructions for using this role with Qovery'
+#     Value: !Sub |
+#       1. Add the following environment variables in your Qovery environment:
+#          - AWS_ASSUME_ROLE_ARN = ${DoktolibIAMRole.Arn}
+#          - AWS_ASSUME_ROLE_EXTERNAL_ID = qovery-doktolib-${EnvironmentName}
+#
+#       2. Deploy your Qovery terraform services
+#
+#       3. The services will automatically assume this role for AWS operations
