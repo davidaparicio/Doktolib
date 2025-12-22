@@ -4,7 +4,7 @@ terraform {
   required_providers {
     qovery = {
       source  = "qovery/qovery"
-      version = "~> 0.53"
+      version = "0.54.0"
     }
   }
 }
@@ -509,10 +509,11 @@ resource "qovery_application" "load_generator" {
 resource "qovery_terraform_service" "rds_aurora" {
   count = var.enable_rds_aurora ? 1 : 0
 
-  environment_id = qovery_environment.doktolib.id
-  name           = "rds-aurora"
-  description    = "AWS RDS Aurora Serverless v2 - PostgreSQL database with auto-scaling"
-  icon_uri       = "app://qovery-console/postgresql"
+  environment_id      = qovery_environment.doktolib.id
+  deployment_stage_id = qovery_deployment_stage.initialization.id
+  name                = "rds-aurora"
+  description         = "AWS RDS Aurora Serverless v2 - PostgreSQL database with auto-scaling"
+  icon_uri            = "app://qovery-console/postgresql"
 
   git_repository = {
     url       = var.git_repository_url
@@ -599,10 +600,11 @@ resource "qovery_terraform_service" "rds_aurora" {
 resource "qovery_terraform_service" "lambda_visio" {
   count = var.enable_lambda_visio ? 1 : 0
 
-  environment_id = qovery_environment.doktolib.id
-  name           = "lambda-visio"
-  description    = "AWS Lambda - Visio conference health check service"
-  icon_uri       = "app://qovery-console/lambda"
+  environment_id      = qovery_environment.doktolib.id
+  deployment_stage_id = qovery_deployment_stage.initialization.id
+  name                = "lambda-visio"
+  description         = "AWS Lambda - Visio conference health check service"
+  icon_uri            = "app://qovery-console/lambda"
 
   git_repository = {
     url       = var.git_repository_url
@@ -674,10 +676,11 @@ resource "qovery_terraform_service" "lambda_visio" {
 resource "qovery_terraform_service" "cloudflare_cdn" {
   count = var.enable_cloudflare_cdn && var.cloudflare_domain_name != "" ? 1 : 0
 
-  environment_id = qovery_environment.doktolib.id
-  name           = "cloudflare-cdn"
-  description    = "Cloudflare CDN - Frontend edge caching and DDoS protection"
-  icon_uri       = "app://qovery-console/cloudflare"
+  environment_id      = qovery_environment.doktolib.id
+  deployment_stage_id = qovery_deployment_stage.initialization.id
+  name                = "cloudflare-cdn"
+  description         = "Cloudflare CDN - Frontend edge caching and DDoS protection"
+  icon_uri            = "app://qovery-console/cloudflare"
 
   git_repository = {
     url       = var.git_repository_url
@@ -729,10 +732,11 @@ resource "qovery_terraform_service" "cloudflare_cdn" {
 resource "qovery_terraform_service" "s3_bucket" {
   count = var.enable_s3_bucket ? 1 : 0
 
-  environment_id = qovery_environment.doktolib.id
-  name           = "s3-bucket"
-  description    = "AWS S3 - Medical files storage with encryption and versioning"
-  icon_uri       = "app://qovery-console/s3"
+  environment_id      = qovery_environment.doktolib.id
+  deployment_stage_id = qovery_deployment_stage.initialization.id
+  name                = "s3-bucket"
+  description         = "AWS S3 - Medical files storage with encryption and versioning"
+  icon_uri            = "app://qovery-console/s3"
 
   git_repository = {
     url       = var.git_repository_url
