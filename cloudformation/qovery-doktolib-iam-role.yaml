@@ -207,7 +207,7 @@ Resources:
 
 Outputs:
   RoleArn:
-    Description: 'ARN of the IAM role to use in Qovery environment variable QOVERY_TERRAFORM_ASSUME_ROLE_ARN'
+    Description: 'ARN of the IAM role to use in Qovery environment variable AWS_ASSUME_ROLE_ARN'
     Value: !GetAtt DoktolibIAMRole.Arn
     Export:
       Name: !Sub '${AWS::StackName}-RoleArn'
@@ -228,8 +228,8 @@ Outputs:
     Description: 'Instructions for using this role with Qovery'
     Value: !Sub |
       1. Add the following environment variables in your Qovery environment:
-         - QOVERY_TERRAFORM_ASSUME_ROLE_ARN = ${DoktolibIAMRole.Arn}
-         - QOVERY_TERRAFORM_EXTERNAL_ID = qovery-doktolib-${EnvironmentName}
+         - AWS_ASSUME_ROLE_ARN = ${DoktolibIAMRole.Arn}
+         - AWS_ASSUME_ROLE_EXTERNAL_ID = qovery-doktolib-${EnvironmentName}
 
       2. Deploy your Qovery terraform services
 

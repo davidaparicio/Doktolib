@@ -67,8 +67,8 @@ After the CloudFormation stack is created, add these environment variables to yo
 
 ```bash
 # From CloudFormation Outputs
-QOVERY_TERRAFORM_ASSUME_ROLE_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:role/qovery-doktolib-production-role
-QOVERY_TERRAFORM_EXTERNAL_ID=qovery-doktolib-production
+AWS_ASSUME_ROLE_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:role/qovery-doktolib-production-role
+AWS_ASSUME_ROLE_EXTERNAL_ID=qovery-doktolib-production
 ```
 
 ## IAM Permissions Included
@@ -141,9 +141,9 @@ aws cloudformation wait stack-delete-complete \
 
 **Cause**: The external ID in Qovery environment variable doesn't match the CloudFormation parameter.
 
-**Solution**: Ensure `QOVERY_TERRAFORM_EXTERNAL_ID` matches the `EnvironmentName` parameter:
+**Solution**: Ensure `AWS_ASSUME_ROLE_EXTERNAL_ID` matches the `EnvironmentName` parameter:
 ```
-QOVERY_TERRAFORM_EXTERNAL_ID=qovery-doktolib-<EnvironmentName>
+AWS_ASSUME_ROLE_EXTERNAL_ID=qovery-doktolib-<EnvironmentName>
 ```
 
 ### "Insufficient permissions"
