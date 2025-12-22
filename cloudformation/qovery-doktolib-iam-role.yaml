@@ -1,0 +1,236 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM Role for Qovery Doktolib Terraform Services'
+
+Parameters:
+  QoveryClusterRoleArn:
+    Type: String
+    Description: 'ARN of the Qovery cluster IAM role (e.g., arn:aws:iam::123456789012:role/qovery-user-role)'
+    AllowedPattern: '^arn:aws:iam::\d{12}:role/.+$'
+
+  EnvironmentName:
+    Type: String
+    Description: 'Environment name (e.g., production, staging, development)'
+    Default: 'production'
+
+Resources:
+  DoktolibIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'qovery-doktolib-${EnvironmentName}-role'
+      Description: 'IAM role for Qovery Doktolib terraform services (RDS Aurora, Lambda, S3)'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref QoveryClusterRoleArn
+            Action: 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Sub 'qovery-doktolib-${EnvironmentName}'
+      ManagedPolicyArns:
+        - !Ref DoktolibRDSPolicy
+        - !Ref DoktolibLambdaPolicy
+        - !Ref DoktolibS3Policy
+        - !Ref DoktolibSecretsManagerPolicy
+        - !Ref DoktolibCloudWatchPolicy
+        - !Ref DoktolibIAMPolicy
+      Tags:
+        - Key: Project
+          Value: Doktolib
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # RDS Aurora Policies
+  DoktolibRDSPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-rds-policy'
+      Description: 'Permissions for RDS Aurora Serverless management'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RDSFullAccess
+            Effect: Allow
+            Action:
+              - 'rds:*'
+            Resource: '*'
+          - Sid: EC2NetworkAccess
+            Effect: Allow
+            Action:
+              - 'ec2:DescribeVpcs'
+              - 'ec2:DescribeSubnets'
+              - 'ec2:DescribeSecurityGroups'
+              - 'ec2:CreateSecurityGroup'
+              - 'ec2:DeleteSecurityGroup'
+              - 'ec2:AuthorizeSecurityGroupIngress'
+              - 'ec2:AuthorizeSecurityGroupEgress'
+              - 'ec2:RevokeSecurityGroupIngress'
+              - 'ec2:RevokeSecurityGroupEgress'
+              - 'ec2:CreateTags'
+              - 'ec2:DeleteTags'
+            Resource: '*'
+
+  # Lambda Policies
+  DoktolibLambdaPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-lambda-policy'
+      Description: 'Permissions for Lambda function management'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: LambdaFullAccess
+            Effect: Allow
+            Action:
+              - 'lambda:*'
+            Resource: '*'
+          - Sid: LambdaIAMPassRole
+            Effect: Allow
+            Action:
+              - 'iam:PassRole'
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'iam:PassedToService': 'lambda.amazonaws.com'
+
+  # S3 Policies
+  DoktolibS3Policy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-s3-policy'
+      Description: 'Permissions for S3 bucket management'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: S3FullAccess
+            Effect: Allow
+            Action:
+              - 's3:*'
+            Resource: '*'
+
+  # Secrets Manager Policies
+  DoktolibSecretsManagerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-secrets-policy'
+      Description: 'Permissions for AWS Secrets Manager'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: SecretsManagerFullAccess
+            Effect: Allow
+            Action:
+              - 'secretsmanager:*'
+            Resource: '*'
+
+  # CloudWatch Policies
+  DoktolibCloudWatchPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-cloudwatch-policy'
+      Description: 'Permissions for CloudWatch Logs and Alarms'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CloudWatchLogsAccess
+            Effect: Allow
+            Action:
+              - 'logs:*'
+            Resource: '*'
+          - Sid: CloudWatchAlarmsAccess
+            Effect: Allow
+            Action:
+              - 'cloudwatch:*'
+            Resource: '*'
+
+  # IAM Policies (for Lambda role creation, etc.)
+  DoktolibIAMPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'qovery-doktolib-${EnvironmentName}-iam-policy'
+      Description: 'Permissions for IAM role and policy management'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: IAMRoleManagement
+            Effect: Allow
+            Action:
+              - 'iam:CreateRole'
+              - 'iam:DeleteRole'
+              - 'iam:GetRole'
+              - 'iam:UpdateRole'
+              - 'iam:ListRoles'
+              - 'iam:TagRole'
+              - 'iam:UntagRole'
+              - 'iam:AttachRolePolicy'
+              - 'iam:DetachRolePolicy'
+              - 'iam:PutRolePolicy'
+              - 'iam:DeleteRolePolicy'
+              - 'iam:GetRolePolicy'
+              - 'iam:ListRolePolicies'
+              - 'iam:ListAttachedRolePolicies'
+              - 'iam:PassRole'
+            Resource: '*'
+          - Sid: IAMPolicyManagement
+            Effect: Allow
+            Action:
+              - 'iam:CreatePolicy'
+              - 'iam:DeletePolicy'
+              - 'iam:GetPolicy'
+              - 'iam:GetPolicyVersion'
+              - 'iam:ListPolicies'
+              - 'iam:ListPolicyVersions'
+              - 'iam:CreatePolicyVersion'
+              - 'iam:DeletePolicyVersion'
+            Resource: '*'
+          - Sid: IAMUserManagement
+            Effect: Allow
+            Action:
+              - 'iam:CreateUser'
+              - 'iam:DeleteUser'
+              - 'iam:GetUser'
+              - 'iam:ListUsers'
+              - 'iam:TagUser'
+              - 'iam:UntagUser'
+              - 'iam:CreateAccessKey'
+              - 'iam:DeleteAccessKey'
+              - 'iam:ListAccessKeys'
+              - 'iam:UpdateAccessKey'
+              - 'iam:PutUserPolicy'
+              - 'iam:DeleteUserPolicy'
+              - 'iam:GetUserPolicy'
+              - 'iam:ListUserPolicies'
+            Resource: '*'
+
+Outputs:
+  RoleArn:
+    Description: 'ARN of the IAM role to use in Qovery environment variable QOVERY_TERRAFORM_ASSUME_ROLE_ARN'
+    Value: !GetAtt DoktolibIAMRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleArn'
+
+  RoleName:
+    Description: 'Name of the IAM role'
+    Value: !Ref DoktolibIAMRole
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleName'
+
+  ExternalId:
+    Description: 'External ID to use when assuming the role'
+    Value: !Sub 'qovery-doktolib-${EnvironmentName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ExternalId'
+
+  DeploymentInstructions:
+    Description: 'Instructions for using this role with Qovery'
+    Value: !Sub |
+      1. Add the following environment variables in your Qovery environment:
+         - QOVERY_TERRAFORM_ASSUME_ROLE_ARN = ${DoktolibIAMRole.Arn}
+         - QOVERY_TERRAFORM_EXTERNAL_ID = qovery-doktolib-${EnvironmentName}
+
+      2. Deploy your Qovery terraform services
+
+      3. The services will automatically assume this role for AWS operations

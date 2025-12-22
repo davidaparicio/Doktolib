@@ -24,11 +24,13 @@ seed-data/doctors-seed.sql
 .env.development.local
 
 # Terraform
-terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.*
-terraform/.terraform.lock.hcl
-terraform/terraform.tfvars
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.*
+**/terraform.tfstate.backup
+**/terraform.tfvars
+**/.terraform.tfstate.lock.info
 
 # Crush
 .crush/

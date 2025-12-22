@@ -550,13 +550,13 @@ resource "qovery_terraform_service" "rds_aurora" {
       is_secret = false
     },
     {
-      key       = "aws_access_key_id"
-      value     = "{{AWS_ACCESS_KEY_ID}}"
-      is_secret = true
+      key       = "assume_role_arn"
+      value     = "{{QOVERY_TERRAFORM_ASSUME_ROLE_ARN}}"
+      is_secret = false
     },
     {
-      key       = "aws_secret_access_key"
-      value     = "{{AWS_SECRET_ACCESS_KEY}}"
+      key       = "assume_role_external_id"
+      value     = "{{QOVERY_TERRAFORM_EXTERNAL_ID}}"
       is_secret = true
     },
     {
@@ -640,13 +640,13 @@ resource "qovery_terraform_service" "lambda_visio" {
       is_secret = false
     },
     {
-      key       = "aws_access_key_id"
-      value     = "{{AWS_ACCESS_KEY_ID}}"
-      is_secret = true
+      key       = "assume_role_arn"
+      value     = "{{QOVERY_TERRAFORM_ASSUME_ROLE_ARN}}"
+      is_secret = false
     },
     {
-      key       = "aws_secret_access_key"
-      value     = "{{AWS_SECRET_ACCESS_KEY}}"
+      key       = "assume_role_external_id"
+      value     = "{{QOVERY_TERRAFORM_EXTERNAL_ID}}"
       is_secret = true
     },
     {
@@ -770,13 +770,13 @@ resource "qovery_terraform_service" "s3_bucket" {
       is_secret = false
     },
     {
-      key       = "aws_access_key_id"
-      value     = "{{AWS_ACCESS_KEY_ID}}"
-      is_secret = true
+      key       = "assume_role_arn"
+      value     = "{{QOVERY_TERRAFORM_ASSUME_ROLE_ARN}}"
+      is_secret = false
     },
     {
-      key       = "aws_secret_access_key"
-      value     = "{{AWS_SECRET_ACCESS_KEY}}"
+      key       = "assume_role_external_id"
+      value     = "{{QOVERY_TERRAFORM_EXTERNAL_ID}}"
       is_secret = true
     },
     {

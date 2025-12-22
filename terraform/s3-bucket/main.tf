@@ -9,9 +9,17 @@ terraform {
 }
 
 provider "aws" {
-  region     = var.aws_region
-  access_key = var.aws_access_key_id != "" ? var.aws_access_key_id : null
-  secret_key = var.aws_secret_access_key != "" ? var.aws_secret_access_key : null
+  region = var.aws_region
+
+  # Use assume_role for secure, temporary credentials
+  dynamic "assume_role" {
+    for_each = var.assume_role_arn != "" ? [1] : []
+    content {
+      role_arn    = var.assume_role_arn
+      external_id = var.assume_role_external_id
+      session_name = "qovery-doktolib-s3-bucket"
+    }
+  }
 }
 
 # S3 bucket for secure medical file uploads

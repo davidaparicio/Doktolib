@@ -4,15 +4,14 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "aws_access_key_id" {
-  description = "AWS access key ID for authentication"
+variable "assume_role_arn" {
+  description = "ARN of the IAM role to assume for AWS operations"
   type        = string
   default     = ""
-  sensitive   = true
 }
 
-variable "aws_secret_access_key" {
-  description = "AWS secret access key for authentication"
+variable "assume_role_external_id" {
+  description = "External ID to use when assuming the IAM role"
   type        = string
   default     = ""
   sensitive   = true
