@@ -42,7 +42,7 @@ output "master_password" {
 
 output "database_url" {
   description = "PostgreSQL connection URL (sensitive)"
-  value       = "postgresql://${aws_rds_cluster.aurora_serverless.master_username}:${random_password.master_password.result}@${aws_rds_cluster.aurora_serverless.endpoint}:${aws_rds_cluster.aurora_serverless.port}/${aws_rds_cluster.aurora_serverless.database_name}"
+  value       = "postgresql://${urlencode(aws_rds_cluster.aurora_serverless.master_username)}:${urlencode(random_password.master_password.result)}@${aws_rds_cluster.aurora_serverless.endpoint}:${aws_rds_cluster.aurora_serverless.port}/${aws_rds_cluster.aurora_serverless.database_name}"
   sensitive   = true
 }
 
@@ -64,7 +64,7 @@ output "secrets_manager_secret_name" {
 # Connection string with SSL mode for application use
 output "database_connection_url" {
   description = "Complete PostgreSQL connection URL with SSL mode"
-  value       = "postgresql://${aws_rds_cluster.aurora_serverless.master_username}:${random_password.master_password.result}@${aws_rds_cluster.aurora_serverless.endpoint}:${aws_rds_cluster.aurora_serverless.port}/${aws_rds_cluster.aurora_serverless.database_name}?sslmode=require"
+  value       = "postgresql://${urlencode(aws_rds_cluster.aurora_serverless.master_username)}:${urlencode(random_password.master_password.result)}@${aws_rds_cluster.aurora_serverless.endpoint}:${aws_rds_cluster.aurora_serverless.port}/${aws_rds_cluster.aurora_serverless.database_name}?sslmode=require"
   sensitive   = true
 }
 
