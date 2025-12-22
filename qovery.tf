@@ -571,6 +571,16 @@ resource "qovery_terraform_service" "rds_aurora" {
       key       = "cluster_name"
       value     = "qovery-{{ENVIRONMENT_ID_FIRST_DIGITS}}-doktolib-aurora"
       is_secret = false
+    },
+    {
+      key       = "tags"
+      value     = jsonencode({
+        Project        = "Doktolib"
+        QoveryProject  = "{{QOVERY_PROJECT_ID}}"
+        QoveryEnvironment = "{{QOVERY_ENVIRONMENT_ID}}"
+        ManagedBy      = "Terraform"
+      })
+      is_secret = false
     }
   ]
 
@@ -629,6 +639,16 @@ resource "qovery_terraform_service" "lambda_visio" {
       key       = "function_name"
       value     = "qovery-{{ENVIRONMENT_ID_FIRST_DIGITS}}-doktolib-visio-health"
       is_secret = false
+    },
+    {
+      key       = "tags"
+      value     = jsonencode({
+        Project        = "Doktolib"
+        QoveryProject  = "{{QOVERY_PROJECT_ID}}"
+        QoveryEnvironment = "{{QOVERY_ENVIRONMENT_ID}}"
+        ManagedBy      = "Terraform"
+      })
+      is_secret = false
     }
   ]
 
@@ -672,6 +692,20 @@ resource "qovery_terraform_service" "cloudflare_cdn" {
     cpu    = 500
     memory = 512
   }
+
+  # Variables for Terraform
+  variables = [
+    {
+      key       = "tags"
+      value     = jsonencode({
+        Project        = "Doktolib"
+        QoveryProject  = "{{QOVERY_PROJECT_ID}}"
+        QoveryEnvironment = "{{QOVERY_ENVIRONMENT_ID}}"
+        ManagedBy      = "Terraform"
+      })
+      is_secret = false
+    }
+  ]
 
   # Tfvars files (required - empty list means use environment variables)
   tfvars_files = []
