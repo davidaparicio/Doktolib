@@ -41,18 +41,29 @@ data "aws_vpc" "selected" {
   id      = var.use_default_vpc ? null : var.vpc_id
 }
 
-# Get available subnets
+# Get available private subnets (filter for private subnets used by Qovery)
 data "aws_subnets" "available" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.selected.id]
+  }
+
+  # Filter for private subnets (Qovery tags them as eks-private)
+  filter {
+    name   = "tag:kubernetes.io/role/internal-elb"
+    values = ["1"]
   }
 }
 
 # Create DB subnet group
 resource "aws_db_subnet_group" "aurora" {
   name       = "${var.cluster_name}-subnet-group"
-  subnet_ids = length(var.subnet_ids) > 0 ? var.subnet_ids : data.aws_subnets.available.ids
+  # Use provided subnet_ids if specified, otherwise use filtered private subnets (limit to 6 for multi-AZ)
+  subnet_ids = length(var.subnet_ids) > 0 ? var.subnet_ids : slice(
+    data.aws_subnets.available.ids,
+    0,
+    min(6, length(data.aws_subnets.available.ids))
+  )
 
   tags = merge(
     var.tags,
