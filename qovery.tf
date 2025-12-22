@@ -22,6 +22,14 @@ resource "qovery_environment" "doktolib" {
   cluster_id = var.qovery_cluster_id
   name       = var.environment_name
   mode       = var.environment_mode # PRODUCTION, STAGING, DEVELOPMENT
+
+  # Environment-level variables accessible to all services
+  environment_variables = [
+    {
+      key   = "ENVIRONMENT_ID_FIRST_DIGITS"
+      value = substr(self.id, 0, 8)
+    }
+  ]
 }
 
 # ========================================
