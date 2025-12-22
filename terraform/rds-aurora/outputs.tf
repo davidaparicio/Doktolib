@@ -61,37 +61,9 @@ output "secrets_manager_secret_name" {
   value       = aws_secretsmanager_secret.db_password.name
 }
 
-# Qovery-specific outputs
-output "qovery_database_host" {
-  description = "Database host for Qovery configuration"
-  value       = aws_rds_cluster.aurora_serverless.endpoint
-}
-
-output "qovery_database_port" {
-  description = "Database port for Qovery configuration"
-  value       = aws_rds_cluster.aurora_serverless.port
-}
-
-output "qovery_database_name" {
-  description = "Database name for Qovery configuration"
-  value       = aws_rds_cluster.aurora_serverless.database_name
-}
-
-output "qovery_database_username" {
-  description = "Database username for Qovery configuration"
-  value       = aws_rds_cluster.aurora_serverless.master_username
-  sensitive   = true
-}
-
-output "qovery_database_password" {
-  description = "Database password for Qovery configuration"
-  value       = random_password.master_password.result
-  sensitive   = true
-}
-
-# Connection string for Qovery environment variable
-output "qovery_database_url" {
-  description = "Complete DATABASE_URL for Qovery environment variables"
+# Connection string with SSL mode for application use
+output "database_connection_url" {
+  description = "Complete PostgreSQL connection URL with SSL mode"
   value       = "postgresql://${aws_rds_cluster.aurora_serverless.master_username}:${random_password.master_password.result}@${aws_rds_cluster.aurora_serverless.endpoint}:${aws_rds_cluster.aurora_serverless.port}/${aws_rds_cluster.aurora_serverless.database_name}?sslmode=require"
   sensitive   = true
 }

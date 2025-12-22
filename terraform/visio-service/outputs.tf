@@ -34,25 +34,19 @@ output "iam_role_arn" {
 }
 
 # Frontend-specific outputs
-output "frontend_visio_health_url" {
-  description = "URL for frontend to check visio conference health (use this in .env)"
+output "visio_health_url" {
+  description = "URL for frontend to check visio conference health"
   value       = "${aws_lambda_function_url.visio_health_url.function_url}health"
+}
+
+output "visio_base_url" {
+  description = "Visio service base URL"
+  value       = aws_lambda_function_url.visio_health_url.function_url
 }
 
 output "frontend_env_variable" {
   description = "Complete environment variable for frontend .env file"
   value       = "NEXT_PUBLIC_VISIO_HEALTH_URL=${aws_lambda_function_url.visio_health_url.function_url}health"
-}
-
-# Qovery-specific outputs
-output "qovery_visio_health_url" {
-  description = "Visio health URL for Qovery environment variables"
-  value       = "${aws_lambda_function_url.visio_health_url.function_url}health"
-}
-
-output "qovery_visio_base_url" {
-  description = "Visio service base URL for Qovery environment variables"
-  value       = aws_lambda_function_url.visio_health_url.function_url
 }
 
 # Testing outputs
