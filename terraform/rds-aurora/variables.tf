@@ -4,6 +4,20 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "aws_access_key_id" {
+  description = "AWS access key ID for authentication"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret access key for authentication"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "cluster_name" {
   description = "Name of the Aurora Serverless cluster"
   type        = string
