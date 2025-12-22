@@ -234,3 +234,28 @@ variable "enable_s3_bucket" {
   type        = bool
   default     = true
 }
+
+# ========================================
+# AWS IAM Role Configuration
+# ========================================
+
+variable "aws_assume_role_arn" {
+  description = "ARN of the IAM role to assume for AWS operations (from CloudFormation stack)"
+  type        = string
+  default     = ""
+
+  # Example: arn:aws:iam::123456789012:role/qovery-doktolib-production-role
+  # Deploy the CloudFormation stack in cloudformation/qovery-doktolib-iam-role.yaml
+  # Then set this variable in Qovery environment variables as AWS_ASSUME_ROLE_ARN
+}
+
+variable "aws_assume_role_external_id" {
+  description = "External ID to use when assuming the IAM role (from CloudFormation stack)"
+  type        = string
+  default     = ""
+  sensitive   = true
+
+  # Example: qovery-doktolib-production
+  # This matches the EnvironmentName parameter in the CloudFormation stack
+  # Set this variable in Qovery environment variables as AWS_ASSUME_ROLE_EXTERNAL_ID
+}

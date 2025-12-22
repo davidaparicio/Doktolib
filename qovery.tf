@@ -551,12 +551,12 @@ resource "qovery_terraform_service" "rds_aurora" {
     },
     {
       key       = "assume_role_arn"
-      value     = "{{AWS_ASSUME_ROLE_ARN}}"
+      value     = var.aws_assume_role_arn
       is_secret = false
     },
     {
       key       = "assume_role_external_id"
-      value     = "{{AWS_ASSUME_ROLE_EXTERNAL_ID}}"
+      value     = var.aws_assume_role_external_id
       is_secret = true
     },
     {
@@ -641,12 +641,12 @@ resource "qovery_terraform_service" "lambda_visio" {
     },
     {
       key       = "assume_role_arn"
-      value     = "{{AWS_ASSUME_ROLE_ARN}}"
+      value     = var.aws_assume_role_arn
       is_secret = false
     },
     {
       key       = "assume_role_external_id"
-      value     = "{{AWS_ASSUME_ROLE_EXTERNAL_ID}}"
+      value     = var.aws_assume_role_external_id
       is_secret = true
     },
     {
@@ -771,12 +771,12 @@ resource "qovery_terraform_service" "s3_bucket" {
     },
     {
       key       = "assume_role_arn"
-      value     = "{{AWS_ASSUME_ROLE_ARN}}"
+      value     = var.aws_assume_role_arn
       is_secret = false
     },
     {
       key       = "assume_role_external_id"
-      value     = "{{AWS_ASSUME_ROLE_EXTERNAL_ID}}"
+      value     = var.aws_assume_role_external_id
       is_secret = true
     },
     {
