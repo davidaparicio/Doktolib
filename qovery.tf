@@ -6,6 +6,10 @@ terraform {
       source  = "qovery/qovery"
       version = "0.54.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -803,6 +807,15 @@ resource "qovery_terraform_service" "s3_bucket" {
 }
 
 # ========================================
+# Data Sources
+# ========================================
+
+# Load Windmill Helm values from file
+data "local_file" "windmill_values" {
+  filename = "${path.module}/windmill-values.yaml"
+}
+
+# ========================================
 # Helm Repositories
 # ========================================
 
@@ -850,31 +863,14 @@ resource "qovery_helm" "windmill" {
   auto_deploy = true
   timeout_sec = 600  # 10 minutes for initial deployment
 
-  # Helm values configuration
+  # Helm values configuration - load from windmill-values.yaml
   values_override = {
-    set_string = {
-      # Database configuration - connect to RDS Aurora
-      "windmill.databaseUrl" = "$${DATABASE_CONNECTION_URL}"
-
-      # Base URL for Windmill
-      "windmill.baseUrl" = "https://$${QOVERY_APPLICATION_HOST}"
-
-      # Disable PostgreSQL (using external RDS Aurora)
-      "postgresql.enabled" = "false"
-
-      # Disable ingress (Qovery handles it)
-      "ingress.enabled" = "false"
-
-      # Service configuration
-      "service.type" = "ClusterIP"
-    }
-
-    set = {
-      # App replicas
-      "windmill.appReplicas" = "1"
-
-      # Service port
-      "service.port" = "8000"
+    file = {
+      raw = {
+        file1 = {
+          content = data.local_file.windmill_values.content
+        }
+      }
     }
   }
 

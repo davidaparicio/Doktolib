@@ -1,0 +1,60 @@
+# Windmill Helm Chart Values
+# Configured for deployment on Qovery with external RDS Aurora PostgreSQL
+
+windmill:
+  # Database configuration - connect to RDS Aurora
+  # This will be injected via Qovery environment variable
+  databaseUrl: "${DATABASE_CONNECTION_URL}"
+
+  # Base URL for Windmill (automatically set by Qovery)
+  baseUrl: "https://${QOVERY_APPLICATION_HOST}"
+
+  # App replicas
+  appReplicas: 1
+
+  # Worker groups configuration
+  workerGroups:
+    - name: "default"
+      replicas: 2
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+  # LSP server for code completion
+  lsp:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  # Multiplayer server for real-time collaboration
+  multiplayer:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# PostgreSQL - Use external database (RDS Aurora)
+postgresql:
+  enabled: false
+
+# Ingress configuration
+ingress:
+  enabled: false  # Qovery handles ingress
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8000
