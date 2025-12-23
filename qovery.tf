@@ -883,7 +883,7 @@ resource "qovery_helm" "windmill" {
       external_port       = 443
       protocol            = "HTTP"
       publicly_accessible = true
-      is_default          = false
+      is_default          = true
     }
   }
 
