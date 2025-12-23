@@ -108,6 +108,15 @@ resource "aws_lambda_function_url" "visio_health_url" {
   }
 }
 
+# Lambda Permission for Function URL (allows public invocation)
+resource "aws_lambda_permission" "function_url" {
+  statement_id           = "AllowPublicFunctionURLInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.visio_health.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
 # CloudWatch Alarms for monitoring
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   alarm_name          = "${var.function_name}-errors"
