@@ -887,13 +887,9 @@ resource "qovery_helm" "windmill" {
     }
   }
 
-  # Environment variables - these will be available to all Windmill pods
-  environment_variables = [
-    {
-      key   = "DATABASE_URL"
-      value = "{{QOVERY_OUTPUT_TERRAFORM_ZF7603648_DATABASE_CONNECTION_URL}}"
-    }
-  ]
+  # Environment variables
+  environment_variables = []
 
-  # Note: WM_BASE_URL will be set automatically by Qovery based on the helm external host
+  # Note: DATABASE_CONNECTION_URL will be injected by RDS Aurora terraform service
+  # The helm chart will automatically receive the RDS Aurora output if it's enabled
 }

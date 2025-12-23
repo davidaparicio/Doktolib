@@ -3,11 +3,11 @@
 
 windmill:
   # Database configuration - connect to RDS Aurora
-  # Windmill will read DATABASE_URL environment variable set by Qovery
-  # No need to set databaseUrl here as it will be overridden by DATABASE_URL env var
+  # This will be injected via Qovery environment variable
+  databaseUrl: "qovery.env.DATABASE_CONNECTION_URL"
 
-  # Base URL for Windmill (set via WM_BASE_URL environment variable)
-  # No need to set baseUrl here as it will be overridden by WM_BASE_URL env var
+  # Base URL for Windmill (automatically set by Qovery)
+  baseUrl: "https://qovery.env.QOVERY_APPLICATION_HOST"
 
   # App replicas
   appReplicas: 1
