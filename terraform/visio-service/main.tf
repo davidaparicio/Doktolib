@@ -109,12 +109,18 @@ resource "aws_lambda_function_url" "visio_health_url" {
 }
 
 # Lambda Permission for Function URL (allows public invocation)
+# When using Function URL with auth_type = NONE, this permission is required
 resource "aws_lambda_permission" "function_url" {
-  statement_id           = "AllowPublicFunctionURLInvoke"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.visio_health.function_name
-  principal              = "*"
+  statement_id  = "FunctionURLAllowPublicAccess"
+  action        = "lambda:InvokeFunctionUrl"
+  function_name = aws_lambda_function.visio_health.function_name
+  principal     = "*"
+
+  # This is critical for Function URL permissions
   function_url_auth_type = "NONE"
+
+  # Ensure this is created after the Function URL
+  depends_on = [aws_lambda_function_url.visio_health_url]
 }
 
 # CloudWatch Alarms for monitoring
