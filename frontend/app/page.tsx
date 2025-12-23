@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { MagnifyingGlassIcon, MapPinIcon, StarIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
 import DoctorAvatar from '../components/DoctorAvatar'
+import VisioStatus from '../components/VisioStatus'
 import { specialties, cities } from '../constants/searchOptions'
 
 interface Doctor {
@@ -103,13 +104,16 @@ export default function Home() {
             <div className="flex items-center">
               <h1 className="text-3xl font-bold text-doctolib-darkblue">Doktolib</h1>
             </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Find a Doctor</a>
-              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Teleconsultation</a>
-              <Link href="/files" className="text-gray-700 hover:text-doctolib-darkblue">Medical Files</Link>
-              <Link href="/doctor-login" className="text-gray-700 hover:text-doctolib-darkblue">Doctor Login</Link>
-              <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Sign In</a>
-            </nav>
+            <div className="flex items-center space-x-6">
+              <nav className="hidden md:flex space-x-8">
+                <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Find a Doctor</a>
+                <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Teleconsultation</a>
+                <Link href="/files" className="text-gray-700 hover:text-doctolib-darkblue">Medical Files</Link>
+                <Link href="/doctor-login" className="text-gray-700 hover:text-doctolib-darkblue">Doctor Login</Link>
+                <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Sign In</a>
+              </nav>
+              <VisioStatus />
+            </div>
           </div>
         </div>
       </header>
