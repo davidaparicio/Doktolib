@@ -72,6 +72,12 @@ Doktolib is a complete doctor appointment booking platform inspired by Doctolib,
 │  │  │  │  - S3 file upload                              │  │  │ │
 │  │  │  │  - Database queries                            │  │  │ │
 │  │  │  └────────────────────────────────────────────────┘  │  │ │
+│  │  │  ┌────────────────────────────────────────────────┐  │  │ │
+│  │  │  │   Windmill (Background Processing)             │  │  │ │
+│  │  │  │  - Workflow engine (Helm chart)                │  │  │ │
+│  │  │  │  - Scheduled jobs                              │  │  │ │
+│  │  │  │  - Multi-language worker pool                  │  │  │ │
+│  │  │  └────────────────────────────────────────────────┘  │  │ │
 │  │  └──────────────────────────────────────────────────────┘  │ │
 │  │                           ↓                                 │ │
 │  │  ┌──────────────────────────────────────────────────────┐  │ │
@@ -109,13 +115,15 @@ Cloudflare CDN (Optional) → Load Balancer → Frontend (Next.js)
                                                   ↓
                                             Backend (Go API)
                                                   ↓
-                                    ┌─────────────┴─────────────┐
-                                    ↓                           ↓
-                            RDS Aurora                    S3 Bucket
-                          (PostgreSQL)                  (Medical Files)
+                                    ┌─────────────┴─────────────┬──────────────────┐
+                                    ↓                           ↓                  ↓
+                            RDS Aurora                    S3 Bucket         Windmill
+                          (PostgreSQL) ←──────────────── (Medical Files) ←─ (Workers)
                                     ↓
                               Lambda Visio
                            (Health Checks)
+
+Note: Windmill workers access RDS Aurora, S3, and can call Backend API for automation tasks
 ```
 
 ---
@@ -530,6 +538,233 @@ CPU: 500m
 Memory: 512 MB
 Instances: 1 (not auto-scaled)
 Auto-deploy: false (manual trigger)
+```
+
+---
+
+### 5. Windmill Background Processing (Helm Chart)
+
+**Purpose**: Workflow engine for background job processing and automation
+
+**Technology Stack**:
+- Platform: Windmill Labs open-source workflow engine
+- Deployment: Helm chart v4.0.10
+- Database: PostgreSQL (RDS Aurora - shared with main application)
+- Runtime: Supports Python, TypeScript, Go, Bash scripts
+
+**Key Features**:
+
+#### Workflow Engine Components
+
+```yaml
+Components:
+  - Windmill App: Web UI for workflow management (8000)
+  - Workers: Execute workflow jobs (2 replicas)
+  - LSP Server: Code completion and validation (1 replica)
+  - Multiplayer Server: Real-time collaboration (1 replica)
+```
+
+#### Use Cases for Doktolib
+
+```javascript
+// Example workflows that can be automated:
+
+1. Appointment Reminders:
+   - Scheduled workflow runs every hour
+   - Queries appointments for next 24 hours
+   - Sends email/SMS reminders to patients
+   - Updates notification status in database
+
+2. Report Generation:
+   - Nightly job generates analytics reports
+   - Doctor performance metrics
+   - Appointment statistics
+   - Patient engagement reports
+   - Exports to S3 bucket
+
+3. Data Cleanup:
+   - Weekly job removes old temporary files
+   - Archives completed appointments after 1 year
+   - Purges expired prescriptions
+   - Maintains database health
+
+4. Medical File Processing:
+   - Triggered when file uploaded to S3
+   - Extracts metadata from documents
+   - Runs OCR on scanned documents
+   - Updates file index in database
+
+5. Integration Tasks:
+   - Sync with external systems
+   - Send data to analytics platforms
+   - Update third-party calendars
+   - Push notifications
+```
+
+#### Architecture
+
+```
+┌──────────────────────────────────────────┐
+│         Windmill Web UI                  │
+│      (Port 8000, HTTPS exposed)          │
+│  - Workflow editor                       │
+│  - Job monitoring                        │
+│  - Schedule management                   │
+└────────────┬─────────────────────────────┘
+             │
+             ↓
+┌──────────────────────────────────────────┐
+│       Windmill Worker Pool               │
+│    (2 replicas, auto-scaling)            │
+│  - Execute Python/TS/Go scripts          │
+│  - Access to RDS Aurora                  │
+│  - Access to S3 buckets                  │
+│  - Can call backend API                  │
+└────────────┬─────────────────────────────┘
+             │
+             ↓ (Connects to)
+┌────────────┴─────────────────────────────┐
+│                                          │
+│  RDS Aurora PostgreSQL                   │
+│  - Workflow definitions                  │
+│  - Job execution history                 │
+│  - Schedule configurations               │
+│  - Shared with main application          │
+└──────────────────────────────────────────┘
+```
+
+#### Helm Chart Configuration
+
+```yaml
+# windmill-values.yaml
+windmill:
+  databaseUrl: "qovery.env.DATABASE_CONNECTION_URL"
+  appReplicas: 1
+
+  workerGroups:
+    - name: "default"
+      replicas: 2
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+  lsp:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  multiplayer:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+postgresql:
+  enabled: false  # Uses external RDS Aurora
+
+ingress:
+  enabled: false  # Qovery handles ingress
+```
+
+#### Environment Variables
+
+```bash
+# Database Connection (shared with main app)
+DATABASE_CONNECTION_URL=postgresql://...?sslmode=require
+  # Injected from RDS Aurora terraform service
+  # Same database as backend application
+  # Windmill creates its own schema/tables
+
+# Windmill Configuration
+WINDMILL_BASE_URL=https://windmill.doktolib.com
+  # Auto-configured from Qovery application URL
+```
+
+#### Integration with Doktolib Services
+
+```python
+# Example: Appointment reminder workflow
+import requests
+import os
+
+# Access backend API
+backend_url = os.environ['BACKEND_URL']
+
+# Query appointments for next 24 hours
+response = requests.get(
+    f"{backend_url}/api/v1/appointments",
+    params={
+        'start_date': 'tomorrow',
+        'end_date': 'tomorrow'
+    }
+)
+
+appointments = response.json()
+
+# Send reminder for each appointment
+for apt in appointments:
+    # Call notification service
+    send_reminder(apt['patient_email'], apt)
+
+    # Update database
+    mark_reminder_sent(apt['id'])
+```
+
+#### Benefits for Doktolib
+
+1. **Decoupled Background Processing**: Long-running tasks don't block API requests
+2. **Reliable Execution**: Built-in retry logic and error handling
+3. **Observability**: Web UI for monitoring job execution
+4. **Flexible Scheduling**: Cron-like scheduling for recurring tasks
+5. **Multi-language Support**: Write workflows in Python, TypeScript, or Go
+6. **Version Control**: Workflow code stored in Git
+7. **Audit Trail**: Complete history of job executions
+
+**Deployment Configuration**:
+
+```yaml
+Resource Type: Helm Chart
+Chart: windmill/windmill (v4.0.10)
+Repository: https://windmill-labs.github.io/windmill-helm-charts/
+Deployment Stage: backend (runs after database is ready)
+Values File: windmill-values.yaml
+Port: 8000 (HTTPS)
+Auto-deploy: true
+Timeout: 600 seconds
+```
+
+**Resource Usage**:
+
+```
+Idle State:
+  - App: CPU 50m, Memory 128Mi
+  - Workers: CPU 100m, Memory 256Mi per replica
+  - LSP: CPU 50m, Memory 64Mi
+  - Multiplayer: CPU 50m, Memory 64Mi
+  - Total: ~400m CPU, ~640Mi memory
+
+Active Processing (10 concurrent jobs):
+  - Workers scale based on queue depth
+  - CPU: up to 500m per worker
+  - Memory: up to 512Mi per worker
+```
+
+**Cost Impact**:
+
+```
+Additional Costs:
+  - Compute: ~$5-10/month (worker pods)
+  - Database: Minimal (shares RDS Aurora with main app)
+  - No additional infrastructure needed
+
+Total: ~$5-10/month for background processing capabilities
 ```
 
 ---
@@ -1205,6 +1440,67 @@ Load Generator collects:
 Output:
     → Performance report
     → Identifies scaling needs
+```
+
+### 7. Windmill Background Job Flow
+
+```
+Scheduled Workflow (e.g., hourly appointment reminders)
+    ↓
+Windmill Scheduler triggers job
+    ↓
+Windmill Worker picks up job from queue
+    ↓ (Python/TypeScript/Go script execution)
+Worker queries backend API:
+    ↓ (HTTP GET)
+Backend: GET /api/v1/appointments?next=24h
+    ↓ (TCP/5432 + TLS)
+RDS Aurora: SELECT appointments WHERE date = tomorrow
+    ↑
+    Returns: appointment list
+    ↓
+Worker processes each appointment:
+    - Generates reminder email/SMS
+    - Calls notification service
+    - Logs activity
+    ↓ (HTTP POST)
+Backend: POST /api/v1/notifications/send
+    ↓
+Updates appointment reminder status:
+    ↓ (TCP/5432 + TLS)
+RDS Aurora: UPDATE appointments SET reminder_sent = true
+    ↑
+    Returns: success
+    ↓
+Worker completes job
+    ↓
+Windmill records execution:
+    - Duration: 2.5 seconds
+    - Status: success
+    - Processed: 150 appointments
+    - Next run: in 1 hour
+
+Manual Workflow (e.g., generate doctor report)
+    ↓
+Doctor clicks "Generate Report" in Windmill UI
+    ↓
+Windmill Worker executes Python script:
+    1. Query doctor's appointments from RDS
+    2. Calculate statistics (total, completed, cancelled)
+    3. Generate PDF report
+    4. Upload to S3 bucket
+        ↓ (AWS SDK + TLS)
+    S3 Bucket: PutObject(reports/doctor-{id}-{date}.pdf)
+        ↑
+        Returns: S3 key
+    5. Store report metadata in database
+        ↓ (TCP/5432 + TLS)
+    RDS Aurora: INSERT INTO reports (doctor_id, s3_key, created_at)
+        ↑
+        Returns: report_id
+    6. Send notification to doctor
+    ↓
+Job complete, report available for download
 ```
 
 ---
@@ -1976,7 +2272,94 @@ Infrastructure change:
 - ✅ Preview environments per branch
 - ✅ No manual console clicks
 
-### 8. Zero-Downtime Deployments
+### 8. Helm Chart Deployment
+
+**What**: Native support for deploying third-party applications via Helm charts
+
+**How It Works**:
+```yaml
+Configuration:
+  - Helm repository URL (HTTPS or OCI)
+  - Chart name and version
+  - Values file or inline values
+  - Custom environment variables
+  - Port configuration for ingress
+
+Execution Flow:
+  1. Qovery adds helm repository
+  2. Pulls specified chart version
+  3. Applies values from file or inline
+  4. Interpolates Qovery template variables
+  5. Deploys to Kubernetes namespace
+  6. Manages upgrades and rollbacks
+```
+
+**Benefits for Doktolib**:
+- ✅ Deploy complex applications without writing YAML
+- ✅ Leverage community helm charts
+- ✅ Automatic updates with chart version management
+- ✅ Values file pattern for configuration
+- ✅ Integration with Qovery services (DB connections, env vars)
+- ✅ Unified deployment pipeline
+- ✅ Built-in monitoring and logging
+
+**Example**: Windmill Helm Chart
+```hcl
+# In qovery.tf
+resource "qovery_helm_repository" "windmill" {
+  organization_id = var.qovery_organization_id
+  name            = "windmill"
+  kind            = "HTTPS"
+  url             = "https://windmill-labs.github.io/windmill-helm-charts/"
+}
+
+resource "qovery_helm" "windmill" {
+  environment_id = qovery_environment.doktolib.id
+  name           = "background-processing"
+
+  source = {
+    helm_repository = {
+      helm_repository_id = qovery_helm_repository.windmill.id
+      chart_name         = "windmill"
+      chart_version      = "4.0.10"
+    }
+  }
+
+  # Load values from file
+  values_override = {
+    file = {
+      raw = {
+        file1 = {
+          content = data.local_file.windmill_values.content
+        }
+      }
+    }
+  }
+
+  ports = {
+    "web-ui" = {
+      internal_port       = 8000
+      external_port       = 443
+      protocol            = "HTTP"
+      publicly_accessible = true
+    }
+  }
+}
+
+# windmill-values.yaml uses Qovery template variables
+windmill:
+  databaseUrl: "qovery.env.DATABASE_CONNECTION_URL"
+```
+
+**Use Cases**:
+- Workflow engines (Windmill, Airflow, Temporal)
+- Monitoring tools (Prometheus, Grafana)
+- Message queues (RabbitMQ, Kafka)
+- Cache systems (Redis, Memcached)
+- Search engines (Elasticsearch, Meilisearch)
+- Any application with existing Helm chart
+
+### 9. Zero-Downtime Deployments
 
 **What**: Rolling updates without service interruption
 
@@ -2330,11 +2713,16 @@ Qovery Platform:
   - Included in cluster costs
   - No per-service charges
 
+Windmill (Helm Chart):
+  - Compute: ~$5-10/month (worker pods)
+  - Database: $0 (shares RDS Aurora)
+  - Additional cost minimal
+
 Cloudflare CDN (Optional):
   - Free tier: $0/month
   - Pro tier: $20/month (if needed)
 
-Total Estimated: $51-115/month
+Total Estimated: $56-125/month
 
 Cost Optimization Tips:
   1. Use Aurora Serverless v2 pausing (auto-pause after 5 min idle)
@@ -2353,12 +2741,14 @@ This documentation covers the complete Doktolib project architecture, from indiv
 
 1. **Cloud-Native Architecture**: Kubernetes-based deployment with auto-scaling
 2. **Infrastructure as Code**: Terraform for AWS resources managed through Qovery
-3. **Security Best Practices**: IAM roles, SSL/TLS, encryption, least privilege
-4. **GitOps Workflow**: All changes through version-controlled Git commits
-5. **Observability**: Built-in logging, metrics, and monitoring
-6. **Cost Optimization**: Serverless where possible, auto-scaling, resource efficiency
+3. **Helm Chart Integration**: Native support for third-party applications (Windmill)
+4. **Security Best Practices**: IAM roles, SSL/TLS, encryption, least privilege
+5. **GitOps Workflow**: All changes through version-controlled Git commits
+6. **Observability**: Built-in logging, metrics, and monitoring
+7. **Cost Optimization**: Serverless where possible, auto-scaling, resource efficiency
+8. **Background Processing**: Workflow automation with Windmill for scheduled tasks
 
-The project serves as a comprehensive example for building production-ready applications on Qovery, showcasing the platform's capabilities for managing complex multi-service architectures with integrated cloud resource provisioning.
+The project serves as a comprehensive example for building production-ready applications on Qovery, showcasing the platform's capabilities for managing complex multi-service architectures with integrated cloud resource provisioning and helm chart deployments.
 
 ---
 
@@ -2369,6 +2759,7 @@ The project serves as a comprehensive example for building production-ready appl
 ```
 Frontend:   https://doktolib.qovery.io
 Backend:    https://api-doktolib.qovery.io
+Windmill:   https://windmill-doktolib.qovery.io
 Health:     https://api-doktolib.qovery.io/api/v1/health
 Lambda:     https://xxx.lambda-url.eu-west-3.on.aws/health
 ```
@@ -2389,6 +2780,7 @@ doktolib/
 ├── cloudformation/       # IAM role CloudFormation
 ├── qovery.tf            # Qovery infrastructure definition
 ├── qovery-variables.tf  # Variable definitions
+├── windmill-values.yaml # Windmill helm chart values
 ├── docker-compose.yml   # Local development setup
 └── DOCUMENTATION.md     # This file
 ```
