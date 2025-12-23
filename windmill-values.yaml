@@ -6,9 +6,6 @@ windmill:
   # This will be injected via Qovery environment variable
   databaseUrl: "qovery.env.DATABASE_CONNECTION_URL"
 
-  # Base URL for Windmill (automatically set by Qovery)
-  baseUrl: "https://qovery.env.QOVERY_APPLICATION_HOST"
-
   # App replicas
   appReplicas: 1
 
