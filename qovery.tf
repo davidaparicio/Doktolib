@@ -107,14 +107,6 @@ resource "qovery_job" "env_id_extractor" {
       enabled   = true
       arguments = []
     }
-    on_stop = {
-      enabled   = false
-      arguments = []
-    }
-    on_delete = {
-      enabled   = false
-      arguments = []
-    }
   }
 
   # Resource configuration
