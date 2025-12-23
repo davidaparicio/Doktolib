@@ -107,7 +107,7 @@ export default function Home() {
             <div className="flex items-center space-x-6">
               <nav className="hidden md:flex space-x-8">
                 <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Find a Doctor</a>
-                <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Teleconsultation</a>
+                <Link href="/teleconsultation" className="text-gray-700 hover:text-doctolib-darkblue">Teleconsultation</Link>
                 <Link href="/files" className="text-gray-700 hover:text-doctolib-darkblue">Medical Files</Link>
                 <Link href="/doctor-login" className="text-gray-700 hover:text-doctolib-darkblue">Doctor Login</Link>
                 <a href="#" className="text-gray-700 hover:text-doctolib-darkblue">Sign In</a>
