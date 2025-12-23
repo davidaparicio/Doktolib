@@ -3,14 +3,11 @@
 
 windmill:
   # Database configuration - connect to RDS Aurora
-  # This will be overridden by set_string in Terraform with actual database URL
-  # Format: postgres://user:pass@host:5432/dbname?sslmode=require
-  # databaseUrl: (set via Terraform)
+  # This will be injected via Qovery environment variable
+  databaseUrl: "qovery.env.DATABASE_CONNECTION_URL"
 
-  # Base URL for Windmill
-  # This will be overridden by set_string in Terraform with actual external host
-  # Format: https://windmill.example.com
-  # baseUrl: (set via Terraform)
+  # Base URL for Windmill (automatically set by Qovery)
+  baseUrl: "https://qovery.env.QOVERY_APPLICATION_HOST"
 
   # App replicas
   appReplicas: 1

@@ -872,11 +872,6 @@ resource "qovery_helm" "windmill" {
         }
       }
     }
-    # Override specific values with Qovery template variables
-    set_string = {
-      "windmill.databaseUrl" = "{{QOVERY_OUTPUT_TERRAFORM_ZF7603648_DATABASE_CONNECTION_URL}}"
-      "windmill.baseUrl"     = "https://{{QOVERY_HELM_HOST_EXTERNAL}}"
-    }
   }
 
   # Port configuration for Windmill UI (map format)
