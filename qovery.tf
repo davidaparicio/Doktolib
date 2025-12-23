@@ -842,7 +842,7 @@ resource "qovery_helm" "windmill" {
     helm_repository = {
       helm_repository_id = qovery_helm_repository.windmill[0].id
       chart_name         = "windmill"
-      chart_version      = "2.0.239"
+      chart_version      = "4.0.10"
     }
   }
 
