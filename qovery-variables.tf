@@ -259,3 +259,13 @@ variable "aws_assume_role_external_id" {
   # This matches the EnvironmentName parameter in the CloudFormation stack
   # Set this variable in Qovery environment variables as AWS_ASSUME_ROLE_EXTERNAL_ID
 }
+
+# ========================================
+# Helm Charts Configuration
+# ========================================
+
+variable "enable_windmill" {
+  description = "Enable Windmill workflow engine deployment via Helm chart"
+  type        = bool
+  default     = true
+}

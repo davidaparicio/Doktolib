@@ -154,3 +154,10 @@ enable_s3_bucket       = true  # S3 Bucket for medical files storage
 # - Lambda Visio: terraform/visio-service/
 # - Cloudflare CDN: terraform/cloudflare-cdn/
 # - S3 Bucket: terraform/s3-bucket/
+
+# ========================================
+# Helm Charts Configuration
+# ========================================
+
+# Windmill - Background processing workflow engine
+enable_windmill = true  # Windmill workflow engine for background job processing

@@ -801,3 +801,99 @@ resource "qovery_terraform_service" "s3_bucket" {
   # Tfvars files (required - empty list means use environment variables)
   tfvars_files = []
 }
+
+# ========================================
+# Helm Repositories
+# ========================================
+
+# Windmill Helm Repository
+resource "qovery_helm_repository" "windmill" {
+  count = var.enable_windmill ? 1 : 0
+
+  organization_id = var.qovery_organization_id
+  name            = "windmill"
+  description     = "Windmill Labs Helm Charts Repository"
+  kind            = "HTTPS"
+  url             = "https://windmill-labs.github.io/windmill-helm-charts/"
+
+  # Skip TLS verification if needed
+  skip_tls_verification = false
+}
+
+# ========================================
+# Helm Charts
+# ========================================
+
+# Windmill - Background Processing Service
+resource "qovery_helm" "windmill" {
+  count = var.enable_windmill ? 1 : 0
+
+  environment_id      = qovery_environment.doktolib.id
+  deployment_stage_id = qovery_deployment_stage.backend.id
+  name                = "background-processing"
+  description         = "Windmill workflow engine for background job processing"
+  icon_uri            = "app://qovery-console/windmill"
+
+  # Allow cluster-wide resources (needed for some CRDs)
+  allow_cluster_wide_resources = false
+
+  # Windmill Helm chart repository
+  source = {
+    helm_repository = {
+      helm_repository_id = qovery_helm_repository.windmill[0].id
+      chart_name         = "windmill"
+      chart_version      = "2.0.239"
+    }
+  }
+
+  # Auto-deploy configuration
+  auto_deploy = true
+  timeout_sec = 600  # 10 minutes for initial deployment
+
+  # Helm values configuration
+  values_override = {
+    set_string = {
+      # Database configuration - connect to RDS Aurora
+      "windmill.databaseUrl" = "$${DATABASE_CONNECTION_URL}"
+
+      # Base URL for Windmill
+      "windmill.baseUrl" = "https://$${QOVERY_APPLICATION_HOST}"
+
+      # Disable PostgreSQL (using external RDS Aurora)
+      "postgresql.enabled" = "false"
+
+      # Disable ingress (Qovery handles it)
+      "ingress.enabled" = "false"
+
+      # Service configuration
+      "service.type" = "ClusterIP"
+    }
+
+    set = {
+      # App replicas
+      "windmill.appReplicas" = "1"
+
+      # Service port
+      "service.port" = "8000"
+    }
+  }
+
+  # Port configuration for Windmill UI (map format)
+  ports = {
+    "web-ui" = {
+      service_name        = "windmill"
+      namespace           = null
+      internal_port       = 8000
+      external_port       = 443
+      protocol            = "HTTP"
+      publicly_accessible = true
+      is_default          = false
+    }
+  }
+
+  # Environment variables
+  environment_variables = []
+
+  # Note: DATABASE_CONNECTION_URL will be injected by RDS Aurora terraform service
+  # The helm chart will automatically receive the RDS Aurora output if it's enabled
+}
