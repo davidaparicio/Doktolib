@@ -99,13 +99,13 @@ output "seed_job_console_url" {
 # ========================================
 
 output "load_generator_id" {
-  description = "Load generator application ID"
-  value       = var.enable_load_generator ? qovery_application.load_generator[0].id : "Load generator disabled"
+  description = "Load generator job ID"
+  value       = var.enable_load_generator ? qovery_job.load_generator[0].id : "Load generator disabled"
 }
 
 output "load_generator_console_url" {
   description = "Load generator console URL"
-  value       = var.enable_load_generator ? "https://console.qovery.com/organization/${var.qovery_organization_id}/project/${var.qovery_project_id}/environment/${qovery_environment.doktolib.id}/application/${qovery_application.load_generator[0].id}" : "Load generator disabled"
+  value       = var.enable_load_generator ? "https://console.qovery.com/organization/${var.qovery_organization_id}/project/${var.qovery_project_id}/environment/${qovery_environment.doktolib.id}/job/${qovery_job.load_generator[0].id}" : "Load generator disabled"
 }
 
 # ========================================

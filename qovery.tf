@@ -466,7 +466,7 @@ resource "qovery_job" "load_generator" {
   # Cron job - runs every 30 minutes
   schedule = {
     cronjob = {
-      scheduled_at = "*/30 * * * *"
+      schedule = "*/30 * * * *"
       command = {
         entrypoint = ""
         arguments  = []
