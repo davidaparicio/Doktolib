@@ -5,7 +5,7 @@ const faker = require('faker');
 
 // Configuration
 const config = {
-  apiUrl: process.env.API_URL || 'http://localhost:8080',
+  apiUrl: process.env.API_URL || 'http://127.0.0.1:8080',
   scenario: process.env.SCENARIO || 'normal',
   duration: parseInt(process.env.DURATION_MINUTES) || 60, // minutes
   logLevel: process.env.LOG_LEVEL || 'info'
