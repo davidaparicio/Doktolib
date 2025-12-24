@@ -441,10 +441,10 @@ resource "qovery_job" "seed_data" {
 }
 
 # ========================================
-# Load Generator (Optional)
+# Load Generator Cron Job
 # ========================================
 
-resource "qovery_application" "load_generator" {
+resource "qovery_job" "load_generator" {
   count = var.enable_load_generator ? 1 : 0
 
   environment_id = qovery_environment.doktolib.id
@@ -452,27 +452,43 @@ resource "qovery_application" "load_generator" {
   icon_uri       = "app://qovery-console/nodejs"
 
   # Git repository configuration
-  git_repository = {
-    url       = var.git_repository_url
-    branch    = var.git_branch
-    root_path = "/load-generator"
+  source = {
+    docker = {
+      git_repository = {
+        url       = var.git_repository_url
+        branch    = var.git_branch
+        root_path = "/load-generator"
+      }
+      dockerfile_path = "Dockerfile"
+    }
   }
 
-  # Build configuration
-  build_mode      = "DOCKER"
-  dockerfile_path = "Dockerfile"
+  # Cron job - runs every 30 minutes
+  schedule = {
+    cronjob = {
+      scheduled_at = "*/30 * * * *"
+      command = {
+        entrypoint = ""
+        arguments  = []
+      }
+    }
+  }
 
-  # Deployment configuration
-  deployment_stage_id   = qovery_deployment_stage.frontend.id
-  cpu                   = 500
-  memory                = 512
-  min_running_instances = 1
-  max_running_instances = 1
+  # Resource configuration
+  cpu    = 500   # millicores
+  memory = 512   # MB
+
+  # Deployment stage
+  deployment_stage_id = qovery_deployment_stage.jobs.id
+
+  # Maximum duration (use configured load_duration)
+  max_duration_seconds = tonumber(var.load_duration) * 60
+  max_nb_restart       = 0  # Don't restart on failure
 
   # Auto-deploy
-  auto_deploy = false
+  auto_deploy = true
 
-  # Health checks
+  # Health checks (required for jobs)
   healthchecks = {
     liveness_probe = {
       type = {
@@ -481,26 +497,30 @@ resource "qovery_application" "load_generator" {
         }
       }
       initial_delay_seconds = 5
-      period_seconds        = 30
+      period_seconds        = 10
       timeout_seconds       = 5
       success_threshold     = 1
-      failure_threshold     = 5
+      failure_threshold     = 3
     }
   }
 
   # Environment variables
   environment_variables = [
     {
-      key   = "LOAD_SCENARIO"
+      key   = "SCENARIO"
       value = var.load_scenario
     },
     {
-      key   = "DURATION"
+      key   = "DURATION_MINUTES"
       value = var.load_duration
     },
     {
       key   = "BACKEND_URL"
       value = "https://{{BACKEND_HOST_EXTERNAL}}"
+    },
+    {
+      key   = "LOG_LEVEL"
+      value = "info"
     }
   ]
 

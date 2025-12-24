@@ -176,7 +176,7 @@ variable "seed_force" {
 # ========================================
 
 variable "enable_load_generator" {
-  description = "Enable load generator application"
+  description = "Enable load generator cron job (runs every 30 minutes)"
   type        = bool
   default     = true
 }
