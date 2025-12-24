@@ -43,7 +43,7 @@ services:
   load-generator:
     build: ./load-generator
     environment:
-      - API_URL=http://backend:8080
+      - BACKEND_URL=http://backend:8080
       - SCENARIO=${LOAD_SCENARIO:-normal}
       - DURATION_MINUTES=${LOAD_DURATION:-60}
       - LOG_LEVEL=${LOAD_LOG_LEVEL:-info}

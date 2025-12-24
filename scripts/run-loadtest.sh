@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Default values
 SCENARIO="${1:-normal}"
 DURATION="${2:-5}"
-API_URL="${3:-http://backend:8080}"
+BACKEND_URL="${3:-http://backend:8080}"
 
 echo -e "${BLUE}🎭 Doktolib Load Test Runner${NC}"
 echo -e "${BLUE}================================${NC}"
@@ -36,7 +36,7 @@ fi
 echo -e "${GREEN}📋 Test Configuration:${NC}"
 echo -e "  Scenario: ${YELLOW}$SCENARIO${NC}"
 echo -e "  Duration: ${YELLOW}$DURATION minutes${NC}"
-echo -e "  API URL:  ${YELLOW}$API_URL${NC}"
+echo -e "  Backend URL: ${YELLOW}$BACKEND_URL${NC}"
 echo ""
 
 # Check if services are running

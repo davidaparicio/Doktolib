@@ -46,10 +46,10 @@ npm run stress   # Stress test
 docker build -t doktolib-load-generator .
 
 # Run with environment variables
-docker run -e API_URL=http://backend:8080 -e SCENARIO=normal doktolib-load-generator
+docker run -e BACKEND_URL=http://backend:8080 -e SCENARIO=normal doktolib-load-generator
 
 # Run stress test for 30 minutes
-docker run -e API_URL=http://backend:8080 -e SCENARIO=stress -e DURATION_MINUTES=30 doktolib-load-generator
+docker run -e BACKEND_URL=http://backend:8080 -e SCENARIO=stress -e DURATION_MINUTES=30 doktolib-load-generator
 ```
 
 ### Docker Compose Integration
@@ -60,7 +60,7 @@ Add to your `docker-compose.yml`:
 load-generator:
   build: ./load-generator
   environment:
-    - API_URL=http://backend:8080
+    - BACKEND_URL=http://backend:8080
     - SCENARIO=normal
     - DURATION_MINUTES=60
     - LOG_LEVEL=info
@@ -78,7 +78,7 @@ Run with: `docker compose --profile loadtest up`
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `API_URL` | `http://localhost:8080` | Target API base URL |
+| `BACKEND_URL` | `http://localhost:8080` | Target API base URL |
 | `SCENARIO` | `normal` | Load scenario (light/normal/heavy/stress) |
 | `DURATION_MINUTES` | `60` | How long to run the test |
 | `LOG_LEVEL` | `info` | Logging level (debug/info/warn/error) |
@@ -174,10 +174,10 @@ P50: 89ms | P95: 267ms | P99: 445ms
 ### Performance Testing
 ```bash
 # Test API under normal load
-docker run -e API_URL=https://your-api.com -e SCENARIO=normal doktolib-load-generator
+docker run -e BACKEND_URL=https://your-api.com -e SCENARIO=normal doktolib-load-generator
 
 # Stress test for capacity planning
-docker run -e API_URL=https://your-api.com -e SCENARIO=stress -e DURATION_MINUTES=30 doktolib-load-generator
+docker run -e BACKEND_URL=https://your-api.com -e SCENARIO=stress -e DURATION_MINUTES=30 doktolib-load-generator
 ```
 
 ### CI/CD Integration
