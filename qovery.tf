@@ -342,21 +342,14 @@ resource "qovery_application" "frontend" {
     ] : []
   )
 
-  # Reference backend external host and lambda outputs via alias
-  environment_variable_aliases = concat(
-    [
-      {
-        key   = "BACKEND_HOST_EXTERNAL"
-        value = "QOVERY_APPLICATION_Z${upper(element(split("-", qovery_application.backend.id), 0))}_HOST_EXTERNAL"
-      }
-    ],
-    var.enable_lambda_visio ? [
-      {
-        key   = "VISIO_HEALTH_URL"
-        value = "QOVERY_TERRAFORM_Z${upper(element(split("-", qovery_terraform_service.lambda_visio[0].id), 0))}_OUTPUT_VISIO_HEALTH_URL"
-      }
-    ] : []
-  )
+  # Reference backend external host via alias
+  # Note: VISIO_HEALTH_URL is automatically created by the Lambda terraform service as an output
+  environment_variable_aliases = [
+    {
+      key   = "BACKEND_HOST_EXTERNAL"
+      value = "QOVERY_APPLICATION_Z${upper(element(split("-", qovery_application.backend.id), 0))}_HOST_EXTERNAL"
+    }
+  ]
 }
 
 # ========================================
